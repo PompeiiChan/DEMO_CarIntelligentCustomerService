@@ -19,7 +19,6 @@
 
 - [核心亮点](#核心亮点)
 - [产品能力](#产品能力)
-- [技术架构](#技术架构)
 - [Prompt 流转](#prompt-流转)
 - [快速启动](#快速启动)
 - [页面入口](#页面入口)
@@ -47,29 +46,6 @@
 | 工单队列 | 按状态、分类、情绪和等待时长查看待处理工单 |
 | 坐席工作台 | 接单、查看历史对话、人工回复、AI 建议回复、关闭工单、转回 AI |
 | 知识库管理 | 上传 Markdown 文档，查看处理状态，支撑客服 RAG 检索 |
-
-## 技术架构
-
-```mermaid
-flowchart LR
-  User["Customer Chat /chat"] --> FE["React + Vite Frontend"]
-  Agent["Agent Workspace /agent"] --> FE
-  Queue["Ticket Queue /queue"] --> FE
-  KBUI["Knowledge Admin /knowledge"] --> FE
-
-  FE -->|HTTP / WebSocket| API["FastAPI App"]
-  API --> Chat["Chat Service"]
-  API --> Ticket["Ticket Service"]
-  API --> Knowledge["Knowledge Service"]
-
-  Chat --> Intent["Intent + Emotion + Handoff Decision"]
-  Chat --> Retrieval["Hybrid Retrieval / RAG"]
-  Retrieval --> KB["Markdown Knowledge Base"]
-  Retrieval --> Vector["Chroma / Local Fallback"]
-  Chat --> LLM["OpenAI-compatible LLM or Mock Provider"]
-  Ticket --> DB["SQLite"]
-  Knowledge --> DB
-```
 
 ## Prompt 流转
 

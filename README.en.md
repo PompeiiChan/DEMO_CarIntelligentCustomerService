@@ -19,7 +19,6 @@ An AI customer-service workspace for automotive brands. It answers high-frequenc
 
 - [Highlights](#highlights)
 - [Product Capabilities](#product-capabilities)
-- [Architecture](#architecture)
 - [Prompt Flow](#prompt-flow)
 - [Quick Start](#quick-start)
 - [Routes](#routes)
@@ -47,29 +46,6 @@ An AI customer-service workspace for automotive brands. It answers high-frequenc
 | Ticket queue | Filter and sort tickets by status, category, emotion, and wait time |
 | Agent workspace | Claim tickets, review history, reply manually, generate AI suggestions, resolve or transfer back to AI |
 | Knowledge admin | Upload Markdown documents and inspect indexing status for RAG retrieval |
-
-## Architecture
-
-```mermaid
-flowchart LR
-  User["Customer Chat /chat"] --> FE["React + Vite Frontend"]
-  Agent["Agent Workspace /agent"] --> FE
-  Queue["Ticket Queue /queue"] --> FE
-  KBUI["Knowledge Admin /knowledge"] --> FE
-
-  FE -->|HTTP / WebSocket| API["FastAPI App"]
-  API --> Chat["Chat Service"]
-  API --> Ticket["Ticket Service"]
-  API --> Knowledge["Knowledge Service"]
-
-  Chat --> Intent["Intent + Emotion + Handoff Decision"]
-  Chat --> Retrieval["Hybrid Retrieval / RAG"]
-  Retrieval --> KB["Markdown Knowledge Base"]
-  Retrieval --> Vector["Chroma / Local Fallback"]
-  Chat --> LLM["OpenAI-compatible LLM or Mock Provider"]
-  Ticket --> DB["SQLite"]
-  Knowledge --> DB
-```
 
 ## Prompt Flow
 
