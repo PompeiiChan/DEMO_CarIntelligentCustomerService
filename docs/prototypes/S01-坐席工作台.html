@@ -1,0 +1,2051 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>汽车智能客服 - 坐席工作台（桌面Web）</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brand:       #0066CC;
+      --brand-deep:  #004D99;
+      --brand-light: #EBF3FF;
+      --success:     #28CD41;
+      --warning:     #FF9500;
+      --danger:      #FF3B30;
+      --purple:      #5E5CE6;
+
+      --bg:          #F2F2F7;
+      --surface:     #FFFFFF;
+      --surface-2:   #F7F7F9;
+      --fill:        rgba(120,120,128,0.10);
+      --fill-2:      rgba(120,120,128,0.06);
+
+      --text-1:      #1C1C1E;
+      --text-2:      #636366;
+      --text-3:      #8E8E93;
+      --sep:         rgba(60,60,67,0.13);
+
+      /* chat */
+      --bub-customer-bg:   #FFFFFF;
+      --bub-customer-text: #1C1C1E;
+      --bub-ai-bg:         #EBF3FF;
+      --bub-ai-text:       #1C1C1E;
+      --bub-agent-bg:      #1C1C1E;
+      --bub-agent-text:    #FFFFFF;
+
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text-1);
+      overflow: hidden;
+    }
+
+    /* ─── App shell ─── */
+    .app-shell {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ─── Toolbar ─── */
+    .toolbar {
+      height: 52px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--sep);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 0;
+      flex-shrink: 0;
+      z-index: 20;
+    }
+
+    .tb-brand {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      flex-shrink: 0;
+    }
+    .tb-logo {
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
+      background: linear-gradient(140deg, #0077E6 0%, #0055BB 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 1px 5px rgba(0,102,204,0.22);
+    }
+    .tb-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-1);
+    }
+    .tb-divider {
+      width: 1px;
+      height: 22px;
+      background: var(--sep);
+      margin: 0 16px;
+      flex-shrink: 0;
+    }
+    .tb-page {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-2);
+    }
+
+    .tb-spacer { flex: 1; }
+
+    .agent-status {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 11px;
+      background: var(--fill);
+      border-radius: 20px;
+    }
+    .agent-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--success);
+      flex-shrink: 0;
+    }
+    .agent-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-1);
+    }
+    .agent-label {
+      font-size: 12px;
+      color: var(--text-3);
+    }
+
+    .tb-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: 16px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 0 14px;
+      height: 32px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: background 0.13s, opacity 0.13s;
+    }
+    .btn-ghost   { background: var(--fill);        color: var(--text-1);  border: 1px solid var(--sep); }
+    .btn-warning { background: rgba(255,149,0,.1); color: #B86A00; }
+    .btn-danger  { background: rgba(255,59,48,.1); color: #C0241B; }
+    .btn:hover   { opacity: 0.78; }
+
+    /* ─── Workspace three-column ─── */
+    .workspace {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    /* ── LEFT SIDEBAR ── */
+    .sl {
+      width: var(--sl-w, 256px);
+      flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--sep);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .sl-header {
+      padding: 12px 14px 10px;
+      border-bottom: 1px solid var(--sep);
+      flex-shrink: 0;
+    }
+    .sl-tabs {
+      display: flex;
+      gap: 0;
+      background: var(--fill);
+      border-radius: 9px;
+      padding: 2px;
+    }
+    .sl-tab {
+      flex: 1;
+      padding: 5px 0;
+      border: none;
+      background: transparent;
+      border-radius: 7px;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text-2);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      font-family: var(--font);
+    }
+    .sl-tab.active {
+      background: var(--surface);
+      color: var(--text-1);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .sl-filter {
+      display: flex;
+      gap: 5px;
+      padding: 10px 14px 0;
+      flex-shrink: 0;
+    }
+    .fc {
+      padding: 4px 10px;
+      border: 1px solid var(--sep);
+      border-radius: 14px;
+      font-size: 11.5px;
+      font-weight: 500;
+      background: transparent;
+      color: var(--text-2);
+      cursor: pointer;
+      font-family: var(--font);
+      transition: all 0.12s;
+    }
+    .fc.on {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: white;
+    }
+    .sl-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 10px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .sl-list::-webkit-scrollbar { display: none; }
+
+    /* Conversation card */
+    .cc {
+      padding: 10px 11px;
+      background: var(--surface);
+      border: 1px solid var(--sep);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.12s;
+      position: relative;
+      overflow: hidden;
+    }
+    .cc::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      border-radius: 0 2px 2px 0;
+    }
+    .cc.prio-high::before  { background: var(--danger); }
+    .cc.prio-med::before   { background: var(--warning); }
+    .cc.prio-low::before   { background: var(--brand); }
+    .cc.active {
+      background: var(--brand-light);
+      border-color: rgba(0,102,204,0.2);
+    }
+    .cc:not(.active):hover { background: var(--fill-2); }
+
+    .cc-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .cc-av {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+      color: white;
+    }
+    .cc-av.c1 { background: linear-gradient(135deg,#0066CC,#0085FF); }
+    .cc-av.c2 { background: linear-gradient(135deg,#5E5CE6,#7B79F7); }
+    .cc-av.c3 { background: linear-gradient(135deg,#FF9500,#FFBE33); }
+
+    .cc-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-1);
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .cc-prio-badge {
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 5px;
+      flex-shrink: 0;
+    }
+    .badge-high   { background: rgba(255,59,48,0.10);  color: #C0241B; }
+    .badge-med    { background: rgba(255,149,0,0.10);  color: #B86A00; }
+    .badge-low    { background: rgba(0,102,204,0.10); color: var(--brand); }
+
+    .cc-preview {
+      font-size: 12px;
+      color: var(--text-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 6px;
+    }
+    .cc-meta {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+    .tag-sm {
+      font-size: 10.5px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+    .tag-sale-after  { background: rgba(255,149,0,0.1); color: #A06000; }
+    .tag-sale-before { background: rgba(0,102,204,0.1); color: var(--brand); }
+    .tag-emotion-neg { background: rgba(255,59,48,0.1);  color: #C0241B; }
+    .tag-emotion-ok  { background: rgba(40,205,65,0.1);  color: #1A7030; }
+    .cc-wait {
+      font-size: 10.5px;
+      color: var(--text-3);
+      margin-left: auto;
+    }
+
+    /* ── CENTER ── */
+    .cm {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg);
+      position: relative;
+    }
+
+    /* 覆盖层：空状态 / 预览状态 */
+    .cm-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      background: var(--bg);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+    }
+    .cm-overlay.show { display: flex; }
+
+    /* 预览接单覆盖 */
+    .cm-preview {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      background: var(--bg);
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .cm-preview.show { display: flex; }
+
+    .preview-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--sep);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .preview-bar-av {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: white; flex-shrink: 0;
+    }
+    .preview-bar-info { flex: 1; }
+    .preview-bar-name { font-size: 14px; font-weight: 600; }
+    .preview-bar-meta { font-size: 12px; color: var(--text-2); margin-top: 1px; }
+    .accept-ticket-btn {
+      padding: 0 20px; height: 36px;
+      background: var(--success); color: white;
+      border: none; border-radius: 10px;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; font-family: var(--font);
+      box-shadow: 0 2px 8px rgba(40,205,65,0.3);
+      transition: opacity 0.12s;
+    }
+    .accept-ticket-btn:hover { opacity: 0.85; }
+
+    .preview-msgs {
+      flex: 1; overflow-y: auto; padding: 16px 20px;
+    }
+    .preview-msgs::-webkit-scrollbar { display: none; }
+
+    /* Context bar */
+    .conv-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--sep);
+      padding: 9px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .conv-bar-user {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .conv-bar-av {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg,#0066CC,#0085FF);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+    .conv-bar-name {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .conv-bar-ticket {
+      font-size: 12px;
+      color: var(--text-2);
+    }
+    .prio-tag {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 5px;
+      background: rgba(255,59,48,0.1);
+      color: #C0241B;
+    }
+    .conv-bar-spacer { flex: 1; }
+    .conv-timer {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12.5px;
+      color: var(--text-2);
+    }
+    .conv-timer-val {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-1);
+      font-variant-numeric: tabular-nums;
+    }
+    .conv-bar-links {
+      display: flex;
+      gap: 4px;
+    }
+    .conv-link {
+      padding: 4px 10px;
+      border: 1px solid var(--sep);
+      border-radius: 7px;
+      font-size: 12px;
+      color: var(--text-2);
+      background: transparent;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: background 0.12s;
+    }
+    .conv-link:hover { background: var(--fill); }
+
+    /* Messages */
+    .chat-msgs {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 24px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      min-height: 0;
+    }
+    .chat-msgs::-webkit-scrollbar { display: none; }
+
+    /* Phase label */
+    .phase-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11.5px;
+      color: var(--text-3);
+      margin: 4px 0 14px;
+    }
+    .phase-label::before,
+    .phase-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--sep);
+    }
+
+    /* Message group */
+    .mg {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 3px;
+    }
+    .mg.cust   { align-items: flex-start; }
+    .mg.ai-msg { align-items: flex-start; }
+    .mg.agent  { flex-direction: row-reverse; }
+    .mg.sys    { justify-content: center; margin: 8px 0; }
+    .turn-gap  { margin-bottom: 10px; }
+
+    /* Avatar */
+    .av {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: white;
+    }
+    .av.bot    { background: linear-gradient(135deg,#0077E6,#0055BB); }
+    .av.cust   { background: linear-gradient(135deg,#0066CC,#0085FF); }
+    .av.me     { background: linear-gradient(135deg,#3A3A3C,#1C1C1E); }
+    .av.ghost  { visibility: hidden; }
+
+    /* Bubble col */
+    .bc { display: flex; flex-direction: column; gap: 3px; max-width: 62%; }
+    .mg.agent .bc { align-items: flex-end; }
+
+    /* Bubbles */
+    .b {
+      padding: 9px 13px;
+      font-size: 13.5px;
+      line-height: 1.55;
+      word-break: break-word;
+      position: relative;
+    }
+    .b.cust {
+      background: var(--bub-customer-bg);
+      color: var(--bub-customer-text);
+      border-radius: 4px 16px 16px 16px;
+      border: 1px solid var(--sep);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    /* AI label on AI bubbles */
+    .b.ai {
+      background: var(--bub-ai-bg);
+      color: var(--bub-ai-text);
+      border-radius: 4px 16px 16px 16px;
+      border: 1px solid rgba(0,102,204,0.14);
+    }
+    .b.agent {
+      background: var(--bub-agent-bg);
+      color: var(--bub-agent-text);
+      border-radius: 16px 4px 16px 16px;
+    }
+
+    .sender-label {
+      font-size: 10.5px;
+      color: var(--text-3);
+      padding: 0 2px;
+      margin-bottom: 2px;
+    }
+    .mg.agent .sender-label { text-align: right; }
+
+    .bt {
+      font-size: 11px;
+      color: var(--text-3);
+      padding: 0 2px;
+      margin-top: 1px;
+    }
+    .mg.agent .bt { text-align: right; }
+
+    /* AI bubble label badge */
+    .ai-badge {
+      display: inline-flex;
+      align-items: center;
+      align-self: flex-start;
+      gap: 3px;
+      font-size: 10px;
+      font-weight: 600;
+      background: rgba(0,102,204,0.1);
+      color: var(--brand);
+      padding: 1px 6px;
+      border-radius: 4px;
+      margin-bottom: 4px;
+    }
+
+    /* System pill */
+    .sp {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 11px;
+      border-radius: 10px;
+      font-size: 11.5px;
+      max-width: 80%;
+      text-align: center;
+    }
+    .sp.gray   { background: var(--fill);                    color: var(--text-2); }
+    .sp.orange { background: rgba(255,149,0,0.09);            color: #A86A00; }
+    .sp.green  { background: rgba(40,205,65,0.09);            color: #1A7030; }
+    .sp.blue   { background: rgba(0,102,204,0.08);            color: var(--brand); }
+    .sp-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+    /* ── AI suggestion panel ── */
+    .ai-suggest {
+      background: var(--surface);
+      border-top: 1px solid var(--sep);
+      padding: 10px 20px 8px;
+      flex-shrink: 0;
+    }
+    .ai-suggest-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .ai-suggest-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--brand);
+      flex: 1;
+    }
+    .ai-suggest-hint {
+      font-size: 11px;
+      color: var(--text-3);
+    }
+    .ai-suggest-toggle {
+      font-size: 11.5px;
+      color: var(--text-3);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font);
+    }
+    .suggest-row {
+      display: flex;
+      gap: 8px;
+    }
+    .sug-card {
+      flex: 1;
+      background: var(--fill-2);
+      border: 1px solid rgba(0,102,204,0.12);
+      border-radius: 9px;
+      padding: 9px 11px;
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .sug-card:hover {
+      background: var(--brand-light);
+      border-color: rgba(0,102,204,0.25);
+    }
+    .sug-text {
+      font-size: 12.5px;
+      color: var(--text-1);
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+    .sug-use {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--brand);
+    }
+
+    /* ── Input area ── */
+    .input-area {
+      background: var(--surface);
+      border-top: 1px solid var(--sep);
+      padding: 12px 20px 14px;
+      flex-shrink: 0;
+    }
+    .input-wrap {
+      border: 1.5px solid var(--sep);
+      border-radius: 11px;
+      background: var(--bg);
+      overflow: hidden;
+      transition: border-color 0.18s;
+    }
+    .input-wrap:focus-within {
+      border-color: var(--brand);
+      background: var(--surface);
+    }
+    .chat-textarea {
+      width: 100%;
+      border: none;
+      background: transparent;
+      font-size: 14px;
+      font-family: var(--font);
+      color: var(--text-1);
+      outline: none;
+      resize: none;
+      padding: 10px 14px 6px;
+      line-height: 1.55;
+      min-height: 64px;
+      max-height: 120px;
+    }
+    .chat-textarea::placeholder { color: var(--text-3); }
+    .input-bottom {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px 8px;
+      border-top: 1px solid rgba(60,60,67,0.07);
+    }
+    .input-icon-btn {
+      width: 28px;
+      height: 28px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      color: var(--text-3);
+      transition: background 0.12s;
+    }
+    .input-icon-btn:hover { background: var(--fill); }
+    .input-label-btn {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-3);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font);
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: background 0.12s;
+    }
+    .input-label-btn:hover { background: var(--fill); color: var(--text-2); }
+    .input-spacer { flex: 1; }
+    .send-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 0 16px;
+      height: 32px;
+      background: var(--brand);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: var(--font);
+      box-shadow: 0 1px 5px rgba(0,102,204,0.25);
+      transition: background 0.12s;
+    }
+    .send-btn:hover { background: var(--brand-deep); }
+
+    /* ── RIGHT SIDEBAR ── */
+    .sr {
+      width: var(--sr-w, 296px);
+      flex-shrink: 0;
+      background: var(--surface);
+      border-left: 1px solid var(--sep);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .sr-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 14px 20px;
+    }
+    .sr-scroll::-webkit-scrollbar { width: 4px; }
+    .sr-scroll::-webkit-scrollbar-track { background: transparent; }
+    .sr-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px; }
+
+    /* Ticket card */
+    .ticket-card {
+      background: linear-gradient(135deg, #0066CC 0%, #0047A3 100%);
+      border-radius: 12px;
+      padding: 13px 14px;
+      margin-bottom: 14px;
+      color: white;
+    }
+    .tc-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .tc-num { font-size: 12px; font-weight: 600; opacity: 0.8; }
+    .tc-status {
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(255,255,255,0.2);
+      padding: 2px 8px;
+      border-radius: 5px;
+    }
+    .tc-reason { font-size: 13px; font-weight: 500; margin-bottom: 8px; line-height: 1.4; }
+    .tc-meta {
+      display: flex;
+      gap: 12px;
+    }
+    .tc-meta-item { font-size: 11.5px; opacity: 0.8; }
+    .tc-meta-val  { font-size: 13px; font-weight: 600; display: block; }
+
+    /* Section */
+    .sr-section { margin-bottom: 16px; }
+    .sr-sec-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-3);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    /* Info rows */
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--sep);
+      font-size: 12.5px;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .ir-label { color: var(--text-2); }
+    .ir-val   { color: var(--text-1); font-weight: 500; }
+
+    /* Transfer reason highlight */
+    .reason-card {
+      background: rgba(255,149,0,0.07);
+      border: 1px solid rgba(255,149,0,0.2);
+      border-radius: 9px;
+      padding: 10px 12px;
+    }
+    .reason-title {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #A06000;
+      margin-bottom: 4px;
+    }
+    .reason-desc {
+      font-size: 12px;
+      color: var(--text-2);
+      line-height: 1.5;
+    }
+
+    /* AI pipeline timeline */
+    .pipeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .pipe-step {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      position: relative;
+      padding-bottom: 12px;
+    }
+    .pipe-step:last-child { padding-bottom: 0; }
+    .pipe-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      left: 9px;
+      top: 20px;
+      bottom: 0;
+      width: 1px;
+      background: var(--sep);
+    }
+    .pipe-icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      position: relative;
+      z-index: 1;
+    }
+    .pipe-icon.ok   { background: rgba(40,205,65,0.12);  color: #1A7030; }
+    .pipe-icon.fail { background: rgba(255,59,48,0.12);  color: #C0241B; }
+    .pipe-icon.end  { background: rgba(255,149,0,0.12);  color: #A06000; }
+    .pipe-content { flex: 1; min-width: 0; padding-top: 1px; }
+    .pipe-name  { font-size: 12.5px; font-weight: 600; color: var(--text-1); }
+    .pipe-detail {
+      font-size: 11.5px;
+      color: var(--text-2);
+      margin-top: 1px;
+      line-height: 1.4;
+    }
+    .pipe-time {
+      font-size: 11px;
+      color: var(--text-3);
+      margin-top: 1px;
+    }
+
+    /* Right bottom actions */
+    .sr-actions {
+      padding: 12px 14px;
+      border-top: 1px solid var(--sep);
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      flex-shrink: 0;
+    }
+    .sr-btn {
+      width: 100%;
+      height: 34px;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: var(--font);
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.13s;
+    }
+    .sr-btn:hover { opacity: 0.78; }
+    .sr-btn-ai     { background: var(--brand-light); color: var(--brand); }
+    .sr-btn-bad    { background: var(--fill);        color: var(--text-2); border: 1px solid var(--sep); }
+    .sr-btn-end    { background: rgba(255,59,48,0.09); color: #C0241B; }
+
+    /* ── 拖拽分割线 ── */
+    .rh {
+      width: 4px;
+      flex-shrink: 0;
+      cursor: col-resize;
+      background: transparent;
+      position: relative;
+      z-index: 5;
+      transition: background 0.15s;
+      user-select: none;
+    }
+    .rh::after {
+      content: '';
+      position: absolute;
+      inset: 0 -3px;  /* 扩大 hit area，左右各 3px */
+    }
+    .rh:hover, .rh.dragging { background: var(--brand); opacity: 0.5; }
+
+    /* ── 确认弹窗 ── */
+    .confirm-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(0,0,0,0.32);
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .confirm-backdrop.show { display: flex; }
+    .confirm-modal {
+      background: var(--surface);
+      border-radius: 14px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+      padding: 24px 24px 20px;
+      width: 320px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .confirm-icon {
+      width: 40px; height: 40px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      margin-bottom: 4px;
+      flex-shrink: 0;
+    }
+    .confirm-icon.red   { background: rgba(255,59,48,0.10); }
+    .confirm-icon.blue  { background: rgba(0,122,255,0.10); }
+    .confirm-icon.orange{ background: rgba(255,149,0,0.10); }
+    .confirm-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-1);
+      line-height: 1.4;
+    }
+    .confirm-desc {
+      font-size: 13px;
+      color: var(--text-3);
+      line-height: 1.55;
+      margin-bottom: 4px;
+    }
+    .confirm-btns {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .confirm-btns button {
+      flex: 1;
+      height: 36px;
+      border-radius: 8px;
+      border: none;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.12s;
+    }
+    .confirm-btns button:hover { opacity: 0.82; }
+    /* 取消 = 蓝色（反直觉护栏）  确认 = 灰色 */
+    .confirm-btn-cancel  { background: var(--brand); color: #fff; }
+    .confirm-btn-confirm { background: var(--fill);  color: var(--text-2); border: 1px solid var(--sep) !important; }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- ─── Toolbar ─── -->
+  <header class="toolbar">
+    <div class="tb-brand">
+      <div class="tb-logo">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M2.5 3.5 H13.5 L2.5 12.5 H13.5"
+                stroke="white" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="tb-title">智能汽车客服</span>
+    </div>
+    <div class="tb-divider"></div>
+    <span class="tb-page">坐席工作台</span>
+    <div class="tb-spacer"></div>
+    <div class="agent-status">
+      <div class="agent-dot"></div>
+      <span class="agent-name">张三</span>
+      <span class="agent-label">· 服务中</span>
+    </div>
+    <div class="tb-actions">
+      <button class="btn btn-danger" id="endBtn1" onclick="endTicket()">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+          <path d="M2.5 2.5L10.5 10.5M10.5 2.5L2.5 10.5"
+                stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        结束工单
+      </button>
+    </div>
+  </header>
+
+  <!-- ─── Workspace ─── -->
+  <div class="workspace">
+
+    <!-- ── LEFT: conversation list ── -->
+    <aside class="sl">
+      <div class="sl-header">
+        <div class="sl-tabs" id="slTabs">
+          <button class="sl-tab active" data-tab="pending">待接手&ensp;<span id="cnt-pending">2</span></button>
+          <button class="sl-tab" data-tab="serving">服务中&ensp;<span id="cnt-serving">1</span></button>
+          <button class="sl-tab" data-tab="ended">已结束&ensp;<span id="cnt-ended">0</span></button>
+        </div>
+      </div>
+      <div class="sl-filter">
+        <button class="fc on">全部</button>
+        <button class="fc">售前</button>
+        <button class="fc">售后</button>
+        <button class="fc">紧急</button>
+      </div>
+      <div class="sl-list" id="slList">
+
+        <!-- Card 1 – active, high priority -->
+        <div class="cc prio-high active">
+          <div class="cc-top">
+            <div class="cc-av c1">李</div>
+            <span class="cc-name">李先生</span>
+            <span class="cc-prio-badge badge-high">紧急</span>
+          </div>
+          <div class="cc-preview">低速行驶有嗡嗡声，底盘异响</div>
+          <div class="cc-meta">
+            <span class="tag-sm tag-sale-after">售后</span>
+            <span class="tag-sm tag-emotion-ok">情绪正常</span>
+            <span class="cc-wait">等待 1分20秒</span>
+          </div>
+        </div>
+
+        <!-- Card 2 – medium priority -->
+        <div class="cc prio-med">
+          <div class="cc-top">
+            <div class="cc-av c2">王</div>
+            <span class="cc-name">王女士</span>
+            <span class="cc-prio-badge badge-med">普通</span>
+          </div>
+          <div class="cc-preview">极氪 001最新报价是多少</div>
+          <div class="cc-meta">
+            <span class="tag-sm tag-sale-before">售前</span>
+            <span class="tag-sm tag-emotion-ok">情绪正常</span>
+            <span class="cc-wait">等待 3分45秒</span>
+          </div>
+        </div>
+
+        <!-- Card 3 – high priority, negative emotion -->
+        <div class="cc prio-high">
+          <div class="cc-top">
+            <div class="cc-av c3">陈</div>
+            <span class="cc-name">陈先生</span>
+            <span class="cc-prio-badge badge-high">紧急</span>
+          </div>
+          <div class="cc-preview">这车太垃圾了，刚买就出问题</div>
+          <div class="cc-meta">
+            <span class="tag-sm tag-sale-after">售后</span>
+            <span class="tag-sm tag-emotion-neg">负面情绪</span>
+            <span class="cc-wait">等待 0分50秒</span>
+          </div>
+        </div>
+
+      </div>
+    </aside>
+    <div class="rh" id="rhLeft"></div>
+
+    <!-- ── CENTER: chat ── -->
+    <main class="cm">
+
+      <!-- 空状态覆盖层 -->
+      <div class="cm-overlay" id="cmOverlay">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" style="opacity:0.28">
+          <circle cx="24" cy="24" r="19" stroke="#636366" stroke-width="2"/>
+          <path d="M16 24l6 6 10-12" stroke="#636366" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div style="font-size:15px;font-weight:600;color:var(--text-2);" id="overlayTitle">工单已结束</div>
+        <div style="font-size:13px;color:var(--text-3);" id="overlayDesc">请从左侧选择下一个待接手工单</div>
+      </div>
+
+      <!-- 预览接单覆盖层 -->
+      <div class="cm-preview" id="cmPreview">
+        <div class="preview-bar">
+          <div class="preview-bar-av" id="previewAv" style="background:linear-gradient(135deg,#0066CC,#0085FF)">李</div>
+          <div class="preview-bar-info">
+            <div class="preview-bar-name" id="previewName">王女士</div>
+            <div class="preview-bar-meta" id="previewMeta">售前 · 普通优先级 · 等待 3分45秒</div>
+          </div>
+          <button class="accept-ticket-btn" onclick="acceptTicket()">✓ 接单</button>
+        </div>
+        <div class="preview-msgs" id="previewMsgs"></div>
+      </div>
+
+      <!-- Context bar -->
+      <div class="conv-bar">
+        <div class="conv-bar-user">
+          <div class="conv-bar-av">李</div>
+          <span class="conv-bar-name">李先生</span>
+          <span class="conv-bar-ticket">· 工单 T20250609001</span>
+        </div>
+        <span class="prio-tag">高优先级</span>
+        <div class="conv-bar-spacer"></div>
+        <div class="conv-timer">
+          已服务
+          <span class="conv-timer-val">02:34</span>
+        </div>
+        <div class="conv-bar-links">
+          <button class="conv-link">历史记录</button>
+          <button class="conv-link">知识库</button>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div class="chat-msgs" id="chatMsgs">
+
+        <!-- AI phase label -->
+        <div class="phase-label">AI 客服阶段 · 5 轮对话 · 连续3次未匹配后转人工</div>
+
+        <!-- AI greeting -->
+        <div class="mg ai-msg turn-gap">
+          <div class="av bot">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+              <path d="M2.5 3 H10.5 L2.5 10 H10.5"
+                    stroke="white" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="bc">
+            <div class="ai-badge">
+              <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M4.5 0.5L3.5 4H5.5L2.5 8.5L3.5 5H1.5Z" fill="currentColor"/></svg>
+              AI 客服
+            </div>
+            <div class="b ai">您好！我是智能汽车客服，请问有什么可以帮助您？</div>
+            <div class="bt">12:00</div>
+          </div>
+        </div>
+
+        <!-- Customer: engine noise -->
+        <div class="mg cust turn-gap">
+          <div class="av cust">李</div>
+          <div class="bc">
+            <div class="sender-label">李先生</div>
+            <div class="b cust">我的车底盘异响</div>
+            <div class="bt">12:01</div>
+          </div>
+        </div>
+
+        <!-- AI: ask car model -->
+        <div class="mg ai-msg turn-gap">
+          <div class="av bot">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+              <path d="M2.5 3 H10.5 L2.5 10 H10.5"
+                    stroke="white" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="bc">
+            <div class="ai-badge">
+              <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M4.5 0.5L3.5 4H5.5L2.5 8.5L3.5 5H1.5Z" fill="currentColor"/></svg>
+              AI 客服
+            </div>
+            <div class="b ai">请问您的车型是？</div>
+            <div class="bt">12:01</div>
+          </div>
+        </div>
+
+        <!-- Customer: Passat -->
+        <div class="mg cust turn-gap">
+          <div class="av cust">李</div>
+          <div class="bc">
+            <div class="sender-label">李先生</div>
+            <div class="b cust">极氪 001</div>
+            <div class="bt">12:01</div>
+          </div>
+        </div>
+
+        <!-- AI: ask scenario -->
+        <div class="mg ai-msg turn-gap">
+          <div class="av bot">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+              <path d="M2.5 3 H10.5 L2.5 10 H10.5"
+                    stroke="white" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="bc">
+            <div class="ai-badge">
+              <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M4.5 0.5L3.5 4H5.5L2.5 8.5L3.5 5H1.5Z" fill="currentColor"/></svg>
+              AI 客服
+            </div>
+            <div class="b ai">请问异响在什么场景下出现？低速行驶时？高速行驶时？还是加速时？</div>
+            <div class="bt">12:01</div>
+          </div>
+        </div>
+
+        <!-- Customer: idle hum -->
+        <div class="mg cust turn-gap">
+          <div class="av cust">李</div>
+          <div class="bc">
+            <div class="sender-label">李先生</div>
+            <div class="b cust">低速行驶有嗡嗡声</div>
+            <div class="bt">12:02</div>
+          </div>
+        </div>
+
+        <!-- AI: transfer notice -->
+        <div class="mg ai-msg turn-gap">
+          <div class="av bot">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+              <path d="M2.5 3 H10.5 L2.5 10 H10.5"
+                    stroke="white" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="bc">
+            <div class="ai-badge">
+              <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M4.5 0.5L3.5 4H5.5L2.5 8.5L3.5 5H1.5Z" fill="currentColor"/></svg>
+              AI 客服
+            </div>
+            <div class="b ai">抱歉，暂时没有找到"极氪 001 底盘嗡嗡声"的匹配方案。正在为您转接人工客服，请稍候...</div>
+            <div class="bt">12:02</div>
+          </div>
+        </div>
+
+        <!-- System: agent join -->
+        <div class="mg sys">
+          <div class="sp green">
+            <div class="sp-dot"></div>
+            坐席 张三 接手工单 T20250609001 · 12:03
+          </div>
+        </div>
+
+        <!-- Agent human phase label -->
+        <div class="phase-label">人工服务阶段</div>
+
+        <!-- Agent reply -->
+        <div class="mg agent turn-gap">
+          <div class="av ghost"></div>
+          <div class="bc">
+            <div class="sender-label">张三（我）</div>
+            <div class="b agent">您好李先生！我是客服张三，已查看了您的问题记录。极氪 001 底盘嗡嗡声通常与传动轴或悬挂衬套有关，建议您到店做个检查。您方便预约近期的 Z服务中心吗？</div>
+            <div class="bt">12:03</div>
+          </div>
+        </div>
+
+        <!-- Customer latest -->
+        <div class="mg cust turn-gap">
+          <div class="av cust">李</div>
+          <div class="bc">
+            <div class="sender-label">李先生</div>
+            <div class="b cust">好的，我在浦东这边</div>
+            <div class="bt">12:04</div>
+          </div>
+        </div>
+
+        <div style="height:6px;flex-shrink:0;"></div>
+      </div><!-- /chat-msgs -->
+
+      <!-- AI suggestion panel -->
+      <div class="ai-suggest">
+        <div class="ai-suggest-header">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+            <path d="M6.5 0.5L5 5.5H8L3.5 12.5L5 7.5H2L6.5 0.5Z" fill="#0066CC"/>
+          </svg>
+          <span class="ai-suggest-title">AI 回复建议</span>
+          <span class="ai-suggest-hint">基于用户位置和问题自动生成</span>
+          <button class="ai-suggest-toggle">收起</button>
+        </div>
+        <div class="suggest-row">
+          <div class="sug-card" onclick="adoptSuggestion(this)">
+            <div class="sug-text">浦东地区距您较近的授权Z服务中心：上海浦东Z浦东服务中心（张杨路 2266 号，电话 400-186-0001），营业时间 9:00–18:00。</div>
+            <span class="sug-use">点击采用 →</span>
+          </div>
+          <div class="sug-card" onclick="adoptSuggestion(this)">
+            <div class="sug-text">极氪 001 底盘检测免预约费，传动轴诊断约 30 分钟，如需维修零件费另计。建议您先预约检测再确认维修方案。</div>
+            <span class="sug-use">点击采用 →</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input area -->
+      <div class="input-area">
+        <div class="input-wrap">
+          <textarea class="chat-textarea" placeholder="回复李先生..."></textarea>
+          <div class="input-bottom">
+            <button class="input-icon-btn" aria-label="附件">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M14.5 7.5L7.8 14.2a4 4 0 0 1-5.6-5.7L9 1.7a2.5 2.5 0 0 1 3.6 3.5L5.8 12a1.1 1.1 0 0 1-1.6-1.6l6.3-6.3"
+                      stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <button class="input-label-btn" id="badCaseBtn" onclick="markBadCase()">标注 Bad Case</button>
+            <div class="input-spacer"></div>
+            <button class="send-btn" onclick="sendMessage()">
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                <path d="M1.5 6.5H11.5M8 3L11.5 6.5 8 10"
+                      stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              发送
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+    <div class="rh" id="rhRight"></div>
+
+    <!-- ── RIGHT SIDEBAR ── -->
+    <aside class="sr">
+      <div class="sr-scroll">
+
+        <!-- Ticket card -->
+        <div class="ticket-card">
+          <div class="tc-row">
+            <span class="tc-num">T20250609001</span>
+            <span class="tc-status">处理中</span>
+          </div>
+          <div class="tc-reason">连续3次未匹配 · 触发转人工</div>
+          <div class="tc-meta">
+            <div class="tc-meta-item">
+              优先级
+              <span class="tc-meta-val">高</span>
+            </div>
+            <div class="tc-meta-item">
+              对话轮次
+              <span class="tc-meta-val">5 轮</span>
+            </div>
+            <div class="tc-meta-item">
+              已服务
+              <span class="tc-meta-val">02:34</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- User info -->
+        <div class="sr-section">
+          <div class="sr-sec-title">用户信息</div>
+          <div class="info-row">
+            <span class="ir-label">姓名</span>
+            <span class="ir-val">李先生</span>
+          </div>
+          <div class="info-row">
+            <span class="ir-label">手机</span>
+            <span class="ir-val">138 **** 5678</span>
+          </div>
+          <div class="info-row">
+            <span class="ir-label">意图</span>
+            <span class="ir-val">售后 · 维修咨询</span>
+          </div>
+          <div class="info-row">
+            <span class="ir-label">情绪</span>
+            <span class="ir-val" style="color:var(--success)">正常</span>
+          </div>
+          <div class="info-row">
+            <span class="ir-label">本年服务</span>
+            <span class="ir-val">第 3 次</span>
+          </div>
+        </div>
+
+        <!-- Transfer reason -->
+        <div class="sr-section">
+          <div class="sr-sec-title">转接原因</div>
+          <div class="reason-card">
+            <div class="reason-title">连续 3 次知识检索未匹配</div>
+            <div class="reason-desc">AI 无法找到"极氪 001 底盘嗡嗡声"的解决方案，Top-5 相关度均低于 50%，触发转人工阈值。</div>
+          </div>
+        </div>
+
+        <!-- AI pipeline -->
+        <div class="sr-section">
+          <div class="sr-sec-title">AI 处理链路</div>
+          <div class="pipeline">
+
+            <div class="pipe-step">
+              <div class="pipe-icon ok">✓</div>
+              <div class="pipe-content">
+                <div class="pipe-name">情绪识别</div>
+                <div class="pipe-detail">中性 · 置信度 70%</div>
+                <div class="pipe-time">50ms</div>
+              </div>
+            </div>
+
+            <div class="pipe-step">
+              <div class="pipe-icon ok">✓</div>
+              <div class="pipe-content">
+                <div class="pipe-name">意图识别</div>
+                <div class="pipe-detail">维修咨询 · 置信度 85%</div>
+                <div class="pipe-time">120ms</div>
+              </div>
+            </div>
+
+            <div class="pipe-step">
+              <div class="pipe-icon ok">✓</div>
+              <div class="pipe-content">
+                <div class="pipe-name">置信度判断</div>
+                <div class="pipe-detail">高置信度 → 进入知识检索</div>
+                <div class="pipe-time">30ms</div>
+              </div>
+            </div>
+
+            <div class="pipe-step">
+              <div class="pipe-icon fail">✗</div>
+              <div class="pipe-content">
+                <div class="pipe-name">知识检索</div>
+                <div class="pipe-detail">未找到匹配，Top-5 最高相似度 42%</div>
+                <div class="pipe-time">280ms</div>
+              </div>
+            </div>
+
+            <div class="pipe-step">
+              <div class="pipe-icon end">→</div>
+              <div class="pipe-content">
+                <div class="pipe-name">转人工判断</div>
+                <div class="pipe-detail">连续3次未匹配，触发转人工</div>
+                <div class="pipe-time">30ms</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div><!-- /sr-scroll -->
+
+      <!-- Right actions -->
+      <div class="sr-actions">
+        <button class="sr-btn sr-btn-ai" id="transferAiBtn2" onclick="transferToAI()">↩ 转回 AI 客服</button>
+        <button class="sr-btn sr-btn-bad" onclick="markBadCase()">🚩 标注 Bad Case</button>
+        <button class="sr-btn sr-btn-end" id="endBtn2" onclick="endTicket()">结束工单</button>
+      </div>
+    </aside>
+
+  </div><!-- /workspace -->
+</div><!-- /app-shell -->
+
+<!-- ── 确认弹窗 ── -->
+<div class="confirm-backdrop" id="confirmBackdrop">
+  <div class="confirm-modal">
+    <div class="confirm-icon" id="confirmIcon">⏹</div>
+    <div class="confirm-title" id="confirmTitle">确认操作？</div>
+    <div class="confirm-desc"  id="confirmDesc"></div>
+    <div class="confirm-btns">
+      <button class="confirm-btn-cancel"  id="confirmCancelBtn">取消</button>
+      <button class="confirm-btn-confirm" id="confirmOkBtn">确认</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── 初始化滚动 ──
+  const chatMsgs = document.getElementById('chatMsgs');
+  if (chatMsgs) chatMsgs.scrollTop = chatMsgs.scrollHeight;
+
+  // ── 状态 ──
+  let currentTab = 'serving';
+  let endedList  = [];
+  let previewCard = null; // 当前预览的待接手卡片
+  let activeServingTicket = null; // 当前坐席正在处理的工单 ticket 字段值
+
+  // ── 工单数据 ──
+  const TABS = {
+    pending: [
+      { av:'王', avClass:'c2', name:'王女士', badge:'普通', badgeClass:'badge-med', prioClass:'prio-med',
+        ticket:'T20250609002', preview:'极氪 001 最新报价是多少',
+        tags:'<span class="tag-sm tag-sale-before">售前</span><span class="tag-sm tag-emotion-ok">情绪正常</span>',
+        wait:'等待 3分45秒', prio:'普通优先级', avBg:'linear-gradient(135deg,#5E5CE6,#7B79F7)',
+        msgs:`
+          <div class="phase-label">AI 客服阶段 · 3 轮对话</div>
+          <div class="mg ai-msg turn-gap">
+            <div class="av bot"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2.5 3 H10.5 L2.5 10 H10.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="bc">
+              <div class="ai-badge"><svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M4.5 0.5L3.5 4H5.5L2.5 8.5L3.5 5H1.5Z" fill="currentColor"/></svg>AI 客服</div>
+              <div class="b ai">您好！请问有什么可以帮助您？</div>
+              <div class="bt">11:45</div>
+            </div>
+          </div>
+          <div class="mg cust turn-gap">
+            <div class="av" style="background:linear-gradient(135deg,#5E5CE6,#7B79F7)">王</div>
+            <div class="bc">
+              <div class="sender-label">王女士</div>
+              <div class="b cust">极氪 001 和 007 哪个更值得买？主要看价格和续航</div>
+              <div class="bt">11:45</div>
+            </div>
+          </div>
+          <div class="mg ai-msg turn-gap">
+            <div class="av bot"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2.5 3 H10.5 L2.5 10 H10.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="bc">
+              <div class="ai-badge"><svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M4.5 0.5L3.5 4H5.5L2.5 8.5L3.5 5H1.5Z" fill="currentColor"/></svg>AI 客服</div>
+              <div class="b ai">您好！关于极氪 001 和 007 的对比，我来为您详细说明...（AI 置信度不足，用户主动要求人工）</div>
+              <div class="bt">11:46</div>
+            </div>
+          </div>` },
+      { av:'陈', avClass:'c3', name:'陈先生', badge:'紧急', badgeClass:'badge-high', prioClass:'prio-high',
+        ticket:'T20250609003', preview:'这车太垃圾了，刚买就出问题',
+        tags:'<span class="tag-sm tag-sale-after">售后</span><span class="tag-sm tag-emotion-neg">负面情绪</span>',
+        wait:'等待 0分50秒', prio:'高优先级 · 负面情绪', avBg:'linear-gradient(135deg,#FF3B30,#FF6B6B)',
+        msgs:`
+          <div class="phase-label">AI 客服阶段 · 2 轮对话 · 负面情绪触发转人工</div>
+          <div class="mg cust turn-gap">
+            <div class="av" style="background:linear-gradient(135deg,#FF3B30,#FF6B6B)">陈</div>
+            <div class="bc">
+              <div class="sender-label">陈先生</div>
+              <div class="b cust">这车太垃圾了！刚买两个月就出毛病，你们售后态度也太差了！</div>
+              <div class="bt">09:58</div>
+            </div>
+          </div>
+          <div class="mg ai-msg turn-gap">
+            <div class="av bot"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2.5 3 H10.5 L2.5 10 H10.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="bc">
+              <div class="ai-badge"><svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M4.5 0.5L3.5 4H5.5L2.5 8.5L3.5 5H1.5Z" fill="currentColor"/></svg>AI 客服</div>
+              <div class="b ai" style="background:#FFF3EE;border-color:rgba(255,59,48,0.15)">很抱歉给您带来不好的体验，已为您优先转接人工客服。</div>
+              <div class="bt">09:58</div>
+            </div>
+          </div>` },
+    ],
+    serving: [
+      { av:'李', avClass:'c1', name:'李先生', badge:'紧急', badgeClass:'badge-high', prioClass:'prio-high active',
+        ticket:'T20250609001', preview:'极氪 001 底盘异响 · 工单 T20250609001',
+        tags:'<span class="tag-sm tag-sale-after">售后</span><span class="tag-sm tag-emotion-ok">情绪正常</span>',
+        wait:'服务中 02:34' },
+    ],
+  };
+
+  // ── 覆盖层控制 ──
+  function showOverlay(title, desc) {
+    hidePreview();
+    document.getElementById('overlayTitle').textContent = title;
+    document.getElementById('overlayDesc').textContent  = desc;
+    document.getElementById('cmOverlay').classList.add('show');
+  }
+  function hideOverlay() {
+    document.getElementById('cmOverlay').classList.remove('show');
+  }
+  function showPreview(card) {
+    previewCard = card;
+    hideOverlay();
+    document.getElementById('previewAv').textContent   = card.av;
+    document.getElementById('previewAv').style.background = card.avBg;
+    document.getElementById('previewName').textContent = card.name;
+    document.getElementById('previewMeta').textContent = `${card.ticket} · ${card.prio} · ${card.wait}`;
+    document.getElementById('previewMsgs').innerHTML   = card.msgs || '<div style="color:var(--text-3);font-size:13px;padding:20px;">暂无对话记录</div>';
+    document.getElementById('cmPreview').classList.add('show');
+  }
+  function hidePreview() {
+    document.getElementById('cmPreview').classList.remove('show');
+    previewCard = null;
+  }
+
+  // ── 接单 ──
+  function acceptTicket() {
+    if (!previewCard) return;
+    const accepted = previewCard;
+    // 从待接手移到服务中
+    TABS.pending = TABS.pending.filter(c => c.ticket !== previewCard.ticket);
+    // 去掉旧的 active 标记，给新接的卡片加 active
+    TABS.serving = TABS.serving.map(c => ({ ...c, prioClass: c.prioClass.replace(' active', '') }));
+    TABS.serving.push({
+      ...previewCard,
+      prioClass: previewCard.prioClass.replace(' active', '') + ' active',
+      wait: '服务中 00:00',
+      preview: previewCard.preview
+    });
+    updateCounts();
+    hidePreview();
+    activeServingTicket = accepted.ticket;
+    // 更新顶部 context bar
+    document.querySelector('.conv-bar-av').textContent      = accepted.av;
+    document.querySelector('.conv-bar-name').textContent    = accepted.name;
+    document.querySelector('.conv-bar-ticket').textContent  = '· 工单 ' + accepted.ticket;
+    document.querySelector('.conv-timer-val').textContent   = '00:00';
+    // 替换聊天区内容为该用户的对话历史
+    const now = new Date();
+    const t   = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+    const msgs = document.getElementById('chatMsgs');
+    msgs.innerHTML = (accepted.msgs || '') + `
+      <div class="mg sys">
+        <div class="sp green"><div class="sp-dot"></div>坐席 张三 接手工单 ${accepted.ticket} · ${t}</div>
+      </div>
+      <div class="phase-label">人工服务阶段</div>`;
+    msgs.scrollTop = msgs.scrollHeight;
+    // 更新输入框 placeholder
+    document.querySelector('.chat-textarea').placeholder = `回复${accepted.name}...`;
+    // 坐席状态改回服务中
+    document.querySelector('.agent-label').textContent      = '· 服务中';
+    document.querySelector('.agent-dot').style.background   = 'var(--success)';
+    // 启用操作按钮，重置上一张工单的按钮状态
+    ['endBtn1','endBtn2','transferAiBtn2'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+    });
+    resetSessionButtons();
+    switchTab('serving');
+  }
+
+  // ── 渲染列表 ──
+  function renderList(tab) {
+    const list = document.getElementById('slList');
+
+    if (tab === 'ended') {
+      list.innerHTML = endedList.length === 0
+        ? `<div style="padding:32px 12px;text-align:center;color:var(--text-3);">
+             <svg width="36" height="36" viewBox="0 0 36 36" fill="none" style="margin:0 auto 10px;display:block;opacity:0.3">
+               <circle cx="18" cy="18" r="14" stroke="currentColor" stroke-width="2"/>
+               <path d="M12 18l4 4 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+             </svg>
+             <div style="font-size:13px;">暂无已结束工单</div></div>`
+        : endedList.map(e => {
+            const isAI    = e.endType === 'ai';
+            const badge   = isAI
+              ? `<span class="cc-prio-badge" style="background:rgba(0,122,255,0.10);color:var(--brand);">转回AI</span>`
+              : `<span class="cc-prio-badge" style="background:rgba(120,120,128,0.12);color:var(--text-3);">已完成</span>`;
+            const metaSuffix = isAI
+              ? `${e.endTime} · 已转 AI 继续`
+              : `${e.endTime} · 处理 ${e.duration}`;
+            return `
+            <div class="cc" style="opacity:0.72;cursor:default">
+              <div class="cc-top">
+                <div class="cc-av ${e.avClass}">${e.av}</div>
+                <span class="cc-name">${e.name}</span>
+                ${badge}
+              </div>
+              <div class="cc-preview">${e.preview}</div>
+              <div class="cc-meta">${e.tags}<span class="cc-wait">${metaSuffix}</span></div>
+            </div>`;
+          }).join('');
+      return;
+    }
+
+    const cards = TABS[tab] || [];
+    if (cards.length === 0) {
+      list.innerHTML = `<div style="padding:32px 12px;text-align:center;color:var(--text-3);font-size:13px;">暂无工单</div>`;
+      return;
+    }
+    list.innerHTML = cards.map((c,i) => `
+      <div class="cc ${c.prioClass}" data-idx="${i}" data-tab="${tab}">
+        <div class="cc-top">
+          <div class="cc-av ${c.avClass}">${c.av}</div>
+          <span class="cc-name">${c.name}</span>
+          <span class="cc-prio-badge ${c.badgeClass}">${c.badge}</span>
+        </div>
+        <div class="cc-preview">${c.preview}</div>
+        <div class="cc-meta">${c.tags}<span class="cc-wait">${c.wait}</span></div>
+      </div>`).join('');
+
+    // 绑定点击
+    list.querySelectorAll('.cc[data-tab]').forEach(el => {
+      el.addEventListener('click', () => {
+        const idx = parseInt(el.dataset.idx);
+        const t   = el.dataset.tab;
+        if (t === 'pending') {
+          showPreview(TABS.pending[idx]);
+        } else if (t === 'serving') {
+          // 点击服务中卡片 → 切换到该对话
+          hidePreview();
+          hideOverlay();
+          const card = TABS.serving[idx];
+          if (card) {
+            document.querySelector('.conv-bar-av').textContent     = card.av;
+            document.querySelector('.conv-bar-name').textContent   = card.name;
+            document.querySelector('.conv-bar-ticket').textContent = '· 工单 ' + card.ticket;
+            activeServingTicket = card.ticket;
+            // 高亮选中的卡片
+            TABS.serving = TABS.serving.map((c, i) => ({
+              ...c,
+              prioClass: i === idx
+                ? c.prioClass.replace(' active', '') + ' active'
+                : c.prioClass.replace(' active', '')
+            }));
+            renderList('serving');
+          }
+        }
+      });
+    });
+  }
+
+  // ── Tab 切换 ──
+  function switchTab(tab) {
+    currentTab = tab;
+    hideOverlay();
+    hidePreview();
+    document.querySelectorAll('.sl-tab').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === tab);
+    });
+    document.querySelector('.sl-filter').style.display = tab === 'ended' ? 'none' : '';
+    renderList(tab);
+    // 非服务中状态显示对应占位提示
+    if (tab === 'pending') {
+      showOverlay('选择待接手工单', '点击左侧工单查看详情，再点击「接单」接手服务');
+    } else if (tab === 'ended') {
+      showOverlay('已结束工单', '可从左侧查看历史工单记录');
+    } else if (tab === 'serving' && TABS.serving.length === 0) {
+      showOverlay('暂无进行中工单', '请从左侧待接手队列中选择接单');
+    }
+  }
+
+  // ── 更新计数 ──
+  function updateCounts() {
+    document.getElementById('cnt-pending').textContent = TABS.pending.length;
+    document.getElementById('cnt-serving').textContent = TABS.serving.length;
+    document.getElementById('cnt-ended').textContent   = endedList.length;
+  }
+
+  // ── 结束工单 ──
+  function endTicket() {
+    if (TABS.serving.length === 0) return;
+    const ticket = activeServingTicket
+      ? (TABS.serving.find(c => c.ticket === activeServingTicket) || TABS.serving[0])
+      : TABS.serving[0];
+    if (!ticket) return;
+    showConfirm({
+      iconClass: 'red',
+      iconChar: '⏹',
+      title: '结束本次服务？',
+      desc: `工单 ${ticket.ticket} 将归档为「已结束」，对话将锁定，无法继续发送消息。`,
+      confirmLabel: '结束工单',
+      callback: () => _doEndTicket(ticket)
+    });
+  }
+
+  function _doEndTicket(ticket) {
+    const now    = new Date();
+    const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+    endedList.unshift({ ...ticket, endTime: timeStr, duration: '5分32秒' });
+    TABS.serving = TABS.serving.filter(c => c.ticket !== ticket.ticket);
+    activeServingTicket = TABS.serving.length > 0 ? TABS.serving[TABS.serving.length - 1].ticket : null;
+    updateCounts();
+
+    if (TABS.serving.length > 0) {
+      resetSessionButtons();
+      switchTab('serving');
+      const next = TABS.serving[TABS.serving.length - 1];
+      document.querySelector('.conv-bar-av').textContent     = next.av;
+      document.querySelector('.conv-bar-name').textContent   = next.name;
+      document.querySelector('.conv-bar-ticket').textContent = '· 工单 ' + next.ticket;
+    } else {
+      ['endBtn1','endBtn2'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) { btn.disabled = true; btn.style.opacity = '0.4'; }
+      });
+      document.querySelector('.agent-label').textContent    = '· 空闲';
+      document.querySelector('.agent-dot').style.background = 'var(--warning)';
+      switchTab('ended');
+      showOverlay('工单已结束', `${ticket.name}的工单已完成，处理时长 5分32秒。请从左侧选择下一个待接手工单。`);
+    }
+  }
+
+  // ── 采用 AI 建议 → 填入输入框 ──
+  function adoptSuggestion(card) {
+    const text = card.querySelector('.sug-text').textContent.trim();
+    const ta   = document.querySelector('.chat-textarea');
+    ta.value   = text;
+    ta.focus();
+    // 光标移到末尾
+    ta.selectionStart = ta.selectionEnd = ta.value.length;
+  }
+
+  // ── 发送消息 ──
+  function sendMessage() {
+    const ta   = document.querySelector('.chat-textarea');
+    const text = ta.value.trim();
+    if (!text) return;
+    const now = new Date();
+    const t   = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+    const msgs = document.getElementById('chatMsgs');
+    const div  = document.createElement('div');
+    div.className = 'mg agent turn-gap';
+    div.innerHTML = `
+      <div class="av ghost"></div>
+      <div class="bc">
+        <div class="sender-label">张三（我）</div>
+        <div class="b agent">${text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+        <div class="bt">${t}</div>
+      </div>`;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+    ta.value = '';
+    ta.style.height = '';
+  }
+
+  // ── Enter 发送（Shift+Enter 换行）──
+  document.querySelector('.chat-textarea').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  // ── 转回 AI ──
+  function transferToAI() {
+    if (TABS.serving.length === 0) return;
+    const ticket = activeServingTicket
+      ? (TABS.serving.find(c => c.ticket === activeServingTicket) || TABS.serving[0])
+      : TABS.serving[0];
+    if (!ticket) return;
+    showConfirm({
+      iconClass: 'blue',
+      iconChar: '🤖',
+      title: '将对话转回 AI 客服？',
+      desc: `工单 ${ticket.ticket} 将由 AI 接管，您将退出本次服务。客户可继续与 AI 交互。`,
+      confirmLabel: '转回 AI',
+      callback: () => _doTransferToAI(ticket)
+    });
+  }
+
+  function _doTransferToAI(ticket) {
+    const now = new Date();
+    const t   = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+    const msgs = document.getElementById('chatMsgs');
+    const sys = document.createElement('div');
+    sys.className = 'mg sys';
+    sys.innerHTML = `<div class="sp blue"><div class="sp-dot"></div>坐席 张三 已将工单转回 AI 客服 · ${t}</div>`;
+    msgs.appendChild(sys);
+    // 加入已结束列表（标记为转回AI类型）
+    endedList.unshift({ ...ticket, endTime: t, duration: '转回AI', endType: 'ai' });
+    const ai = document.createElement('div');
+    ai.className = 'mg ai-msg turn-gap';
+    ai.innerHTML = `
+      <div class="av bot">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+          <path d="M2.5 3 H10.5 L2.5 10 H10.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="bc">
+        <div class="ai-badge">
+          <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M4.5 0.5L3.5 4H5.5L2.5 8.5L3.5 5H1.5Z" fill="currentColor"/></svg>
+          AI 客服
+        </div>
+        <div class="b ai">您好，感谢您的耐心等待，AI 客服已重新接入，请问还有什么可以帮您？</div>
+        <div class="bt">${t}</div>
+      </div>`;
+    msgs.appendChild(ai);
+    msgs.scrollTop = msgs.scrollHeight;
+    TABS.serving = TABS.serving.filter(c => c.ticket !== ticket.ticket);
+    activeServingTicket = TABS.serving.length > 0 ? TABS.serving[TABS.serving.length - 1].ticket : null;
+    updateCounts();
+    if (TABS.serving.length > 0) {
+      resetSessionButtons();
+      switchTab('serving');
+      const next = TABS.serving[TABS.serving.length - 1];
+      document.querySelector('.conv-bar-av').textContent     = next.av;
+      document.querySelector('.conv-bar-name').textContent   = next.name;
+      document.querySelector('.conv-bar-ticket').textContent = '· 工单 ' + next.ticket;
+    } else {
+      document.querySelector('.agent-label').textContent    = '· 空闲';
+      document.querySelector('.agent-dot').style.background = 'var(--warning)';
+      ['endBtn1','endBtn2','transferAiBtn2'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) { btn.disabled = true; btn.style.opacity = '0.4'; }
+      });
+      switchTab('ended');
+      showOverlay('工单已转回 AI', `${ticket.name}的工单已由 AI 接管。可从左侧查看记录，或选择下一个待接手工单。`);
+    }
+  }
+
+  // ── 标注 Bad Case ──
+  function markBadCase() {
+    const btn = document.getElementById('badCaseBtn');
+    if (btn && btn.dataset.marked) return;
+    showConfirm({
+      iconClass: 'orange',
+      iconChar: '🚩',
+      title: '标记为 Bad Case？',
+      desc: '本对话将进入质检复核队列，用于模型迭代优化。标记后不可撤销。',
+      confirmLabel: '标记',
+      callback: _doMarkBadCase
+    });
+  }
+
+  function _doMarkBadCase() {
+    const btn = document.getElementById('badCaseBtn');
+    const now = new Date();
+    const t   = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+    const msgs = document.getElementById('chatMsgs');
+    const sys  = document.createElement('div');
+    sys.className = 'mg sys';
+    sys.innerHTML = `<div class="sp orange"><div class="sp-dot"></div>已标注 Bad Case，已加入优化队列 · ${t}</div>`;
+    msgs.appendChild(sys);
+    msgs.scrollTop = msgs.scrollHeight;
+    if (btn) {
+      btn.textContent  = '✓ 已标注';
+      btn.style.color  = '#B86A00';
+      btn.dataset.marked = '1';
+    }
+    document.querySelectorAll('.sr-btn-bad').forEach(b => {
+      b.textContent = '🚩 已标注 Bad Case';
+      b.style.background = 'rgba(255,149,0,0.1)';
+      b.style.color = '#B86A00';
+    });
+  }
+
+  // ── 切换工单时重置上一张工单的操作按钮状态 ──
+  function resetSessionButtons() {
+    // 重新启用转回 AI 按钮
+    const aiBtn = document.getElementById('transferAiBtn2');
+    if (aiBtn) { aiBtn.disabled = false; aiBtn.style.opacity = '1'; }
+    // 重置 Bad Case 标注状态
+    const badBtn = document.getElementById('badCaseBtn');
+    if (badBtn) {
+      badBtn.textContent = '标注 Bad Case';
+      badBtn.style.color = '';
+      delete badBtn.dataset.marked;
+    }
+    document.querySelectorAll('.sr-btn-bad').forEach(b => {
+      b.textContent = '🚩 标注 Bad Case';
+      b.style.background = '';
+      b.style.color = '';
+    });
+  }
+
+  // ── 确认弹窗 ──
+  let _confirmCallback = null;
+
+  function showConfirm({ iconClass, iconChar, title, desc, confirmLabel, callback }) {
+    document.getElementById('confirmIcon').className    = 'confirm-icon ' + iconClass;
+    document.getElementById('confirmIcon').textContent  = iconChar;
+    document.getElementById('confirmTitle').textContent = title;
+    document.getElementById('confirmDesc').textContent  = desc;
+    document.getElementById('confirmOkBtn').textContent = confirmLabel || '确认';
+    _confirmCallback = callback;
+    document.getElementById('confirmBackdrop').classList.add('show');
+  }
+
+  function hideConfirm() {
+    document.getElementById('confirmBackdrop').classList.remove('show');
+    _confirmCallback = null;
+  }
+
+  document.getElementById('confirmCancelBtn').addEventListener('click', hideConfirm);
+  document.getElementById('confirmOkBtn').addEventListener('click', () => {
+    const cb = _confirmCallback;
+    hideConfirm();
+    if (cb) cb();
+  });
+  // 点背景关闭
+  document.getElementById('confirmBackdrop').addEventListener('click', function(e) {
+    if (e.target === this) hideConfirm();
+  });
+
+  // ── 侧边栏拖拽调宽 ──
+  (function() {
+    const root    = document.documentElement;
+    const slEl    = document.querySelector('.sl');
+    const srEl    = document.querySelector('.sr');
+    const shell   = document.querySelector('.body-row') || document.querySelector('.app-shell > div:last-child') || slEl.parentElement;
+
+    function initResize(handle, getSide, setVar, min, max) {
+      let startX, startW;
+      handle.addEventListener('mousedown', e => {
+        startX = e.clientX;
+        startW = getSide();
+        handle.classList.add('dragging');
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+        e.preventDefault();
+      });
+      document.addEventListener('mousemove', e => {
+        if (!handle.classList.contains('dragging')) return;
+        const delta = e.clientX - startX;
+        const newW  = Math.min(max, Math.max(min, startW + delta));
+        root.style.setProperty(setVar, newW + 'px');
+      });
+      document.addEventListener('mouseup', () => {
+        if (!handle.classList.contains('dragging')) return;
+        handle.classList.remove('dragging');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      });
+    }
+
+    initResize(
+      document.getElementById('rhLeft'),
+      () => slEl.offsetWidth,
+      '--sl-w', 180, 400
+    );
+    initResize(
+      document.getElementById('rhRight'),
+      () => srEl.offsetWidth,
+      '--sr-w', 200, 440
+    );
+  })();
+
+  // ── Tab 绑定 ──
+  document.querySelectorAll('.sl-tab').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+
+  // ── 初始化 ──
+  activeServingTicket = TABS.serving.length > 0 ? TABS.serving[0].ticket : null;
+  switchTab('serving');
+  updateCounts();
+</script>
+</body>
+</html>

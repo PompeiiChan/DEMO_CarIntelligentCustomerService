@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>汽车智能客服 - 客户端对话页（移动端H5）</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brand:         #0066CC;
+      --brand-deep:    #004D99;
+      --brand-light:   #EBF3FF;
+      --success:       #30D158;
+      --warning:       #FF9F0A;
+      --danger:        #FF453A;
+      --purple:        #5E5CE6;
+
+      --bg:            #F2F2F7;
+      --surface:       #FFFFFF;
+      --fill:          rgba(120,120,128,0.12);
+      --fill-2:        rgba(120,120,128,0.07);
+
+      --text-1:        #1C1C1E;
+      --text-2:        #636366;
+      --text-3:        #8E8E93;
+      --sep:           rgba(60,60,67,0.14);
+
+      --bubble-ai-bg:      #FFFFFF;
+      --bubble-ai-text:    #1C1C1E;
+      --bubble-user-bg:    #0066CC;
+      --bubble-user-text:  #FFFFFF;
+
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
+    }
+
+    body {
+      font-family: var(--font);
+      background: linear-gradient(160deg, #D4E2EF 0%, #E2EBF5 45%, #EBF0F8 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 24px 60px;
+      color: var(--text-1);
+    }
+
+    /* ─── Page label ─── */
+    .page-meta {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .page-meta h1 {
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(0,0,0,0.45);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .page-meta p {
+      font-size: 12px;
+      color: rgba(0,0,0,0.3);
+      margin-top: 3px;
+    }
+
+    /* ─── Phone shell ─── */
+    .phone {
+      width: 393px;
+      background: #111;
+      border-radius: 54px;
+      padding: 14px;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.1),
+        inset 0 0 0 1px rgba(255,255,255,0.05),
+        0 40px 100px rgba(0,0,0,0.32),
+        0 16px 32px rgba(0,0,0,0.18);
+      position: relative;
+    }
+
+    /* Side buttons */
+    .phone::before {
+      content: '';
+      position: absolute;
+      left: -3px;
+      top: 120px;
+      width: 3px;
+      height: 36px;
+      background: #2a2a2a;
+      border-radius: 2px 0 0 2px;
+      box-shadow: 0 50px 0 #2a2a2a, 0 96px 0 #2a2a2a;
+    }
+    .phone::after {
+      content: '';
+      position: absolute;
+      right: -3px;
+      top: 148px;
+      width: 3px;
+      height: 68px;
+      background: #2a2a2a;
+      border-radius: 0 2px 2px 0;
+    }
+
+    /* Dynamic Island */
+    .dynamic-island {
+      position: absolute;
+      top: 26px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 122px;
+      height: 35px;
+      background: #000;
+      border-radius: 20px;
+      z-index: 200;
+    }
+
+    /* Screen */
+    .screen {
+      background: var(--bg);
+      border-radius: 42px;
+      overflow: hidden;
+      height: 852px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* ─── Status bar ─── */
+    .status-bar {
+      height: 56px;
+      padding: 18px 28px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+      flex-shrink: 0;
+      position: relative;
+      z-index: 10;
+    }
+    .status-time {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-1);
+      letter-spacing: -0.2px;
+    }
+    .status-icons {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    /* ─── Chat header ─── */
+    .chat-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--sep);
+      padding: 10px 16px 12px;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 10;
+    }
+
+    .logo-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 24px;
+      background: linear-gradient(140deg, #0077E6 0%, #0055BB 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 2px 10px rgba(0,102,204,0.28);
+    }
+
+    .header-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .header-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-1);
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .header-sub {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 2px;
+    }
+    .header-sub-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .header-sub-dot.ai   { background: var(--success); }
+    .header-sub-dot.human { background: var(--brand); }
+    .header-sub-text {
+      font-size: 12px;
+      color: var(--text-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .svc-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 9px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      letter-spacing: 0.01em;
+    }
+    .svc-badge.ai    { background: rgba(48,209,88,0.12); color: #1D8833; }
+    .svc-badge.human { background: var(--brand-light); color: var(--brand); }
+
+    .hdr-menu {
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: var(--fill);
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* ─── Messages area ─── */
+    .chat-body {
+      flex: 1;
+      overflow-y: scroll;
+      overflow-x: hidden;
+      padding: 14px 15px 6px;
+      display: flex;
+      flex-direction: column;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .chat-body::-webkit-scrollbar { display: none; }
+
+    /* Day separator */
+    .day-sep {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 4px 0 14px;
+      font-size: 11.5px;
+      color: var(--text-3);
+    }
+    .day-sep::before,
+    .day-sep::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--sep);
+    }
+
+    /* Message group  */
+    .mg {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 3px;
+    }
+    .mg.ai   { align-items: flex-end; }
+    .mg.user { flex-direction: row-reverse; }
+    .mg.sys  { justify-content: center; margin: 7px 0; }
+
+    /* Space between speaker turns */
+    .turn-gap { margin-bottom: 10px; }
+
+    /* Avatar */
+    .av {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+    .av.bot {
+      background: linear-gradient(140deg, #0077E6 0%, #0055BB 100%);
+      box-shadow: 0 1px 4px rgba(0,102,204,0.22);
+    }
+    .av.agent {
+      background: linear-gradient(140deg, #6B69F0 0%, #4E4CD9 100%);
+      color: white;
+      box-shadow: 0 1px 4px rgba(94,92,230,0.22);
+    }
+    /* Invisible placeholder so user group aligns right */
+    .av.ghost { visibility: hidden; }
+
+    /* Bubble column */
+    .bc {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      max-width: 73%;
+    }
+    .mg.user .bc { align-items: flex-end; }
+
+    /* Bubble */
+    .b {
+      padding: 10px 14px;
+      font-size: 14px;
+      line-height: 1.55;
+      word-break: break-word;
+    }
+    .b.ai {
+      background: var(--bubble-ai-bg);
+      color: var(--bubble-ai-text);
+      border-radius: 4px 18px 18px 18px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 0 0 0.5px rgba(0,0,0,0.04);
+    }
+    .b.user {
+      background: var(--bubble-user-bg);
+      color: var(--bubble-user-text);
+      border-radius: 18px 4px 18px 18px;
+    }
+
+    /* Bubble timestamp */
+    .bt {
+      font-size: 11px;
+      color: var(--text-3);
+      padding: 0 2px;
+      margin-top: 1px;
+    }
+    .mg.user .bt { text-align: right; }
+
+    /* System pill */
+    .sp {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 11px;
+      border-radius: 11px;
+      font-size: 11.5px;
+      max-width: 88%;
+      text-align: center;
+      line-height: 1.4;
+    }
+    .sp.neutral { background: var(--fill); color: var(--text-2); }
+    .sp.orange  { background: rgba(255,159,10,0.10); color: #A86B00; }
+    .sp.blue    { background: rgba(0,102,204,0.09); color: #0055A8; }
+    .sp-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+    }
+
+    /* Typing dots */
+    .typing-bub {
+      background: var(--bubble-ai-bg);
+      border-radius: 4px 18px 18px 18px;
+      padding: 13px 16px;
+      display: flex;
+      gap: 5px;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 0 0 0.5px rgba(0,0,0,0.04);
+      width: 60px;
+    }
+    .td {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text-3);
+      animation: bounce 1.3s infinite ease-in-out;
+    }
+    .td:nth-child(2) { animation-delay: 0.18s; }
+    .td:nth-child(3) { animation-delay: 0.36s; }
+
+    @keyframes bounce {
+      0%, 55%, 100% { transform: translateY(0);   opacity: 0.35; }
+      27%           { transform: translateY(-5px); opacity: 1;    }
+    }
+
+    /* ─── Quick actions ─── */
+    .quick-area {
+      background: var(--surface);
+      border-top: 1px solid var(--sep);
+      padding: 9px 0 9px 15px;
+      flex-shrink: 0;
+      position: relative;
+    }
+    /* Right fade */
+    .quick-area::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 36px;
+      height: 100%;
+      background: linear-gradient(to right, transparent, var(--surface));
+      pointer-events: none;
+    }
+    .quick-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-3);
+      letter-spacing: 0.03em;
+      margin-bottom: 7px;
+    }
+    .quick-row {
+      display: flex;
+      gap: 7px;
+      overflow-x: auto;
+      padding-right: 40px;
+      scrollbar-width: none;
+    }
+    .quick-row::-webkit-scrollbar { display: none; }
+    .qc {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 12px;
+      background: var(--bg);
+      border: 1px solid rgba(60,60,67,0.09);
+      border-radius: 20px;
+      font-size: 13px;
+      color: var(--text-1);
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: background 0.12s;
+    }
+    .qc:active { background: var(--fill); }
+    .qi { font-size: 14px; line-height: 1; }
+
+    /* ─── Input area ─── */
+    .input-area {
+      background: var(--surface);
+      border-top: 1px solid var(--sep);
+      padding: 9px 14px 10px;
+      flex-shrink: 0;
+    }
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .attach-btn {
+      width: 36px;
+      height: 36px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--text-3);
+    }
+    .input-wrap {
+      flex: 1;
+      background: var(--bg);
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      min-height: 40px;
+      border: 1.5px solid transparent;
+      transition: border-color 0.18s, background 0.18s;
+    }
+    .input-wrap:focus-within {
+      background: var(--surface);
+      border-color: var(--brand);
+    }
+    .chat-input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: 15px;
+      font-family: var(--font);
+      color: var(--text-1);
+      outline: none;
+      padding: 9px 0;
+    }
+    .chat-input::placeholder { color: var(--text-3); }
+    .send-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--brand);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(0,102,204,0.32);
+      transition: background 0.12s, transform 0.1s;
+    }
+    .send-btn:active { transform: scale(0.92); background: var(--brand-deep); }
+
+    /* ─── Home bar ─── */
+    .home-bar {
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    .home-line {
+      width: 134px;
+      height: 5px;
+      background: var(--text-1);
+      border-radius: 3px;
+      opacity: 0.16;
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-meta">
+  <h1>C01 · 客户端对话页</h1>
+  <p>移动端 H5 · 390 × 852 · 展示 AI对话 → 工单创建 → 人工接入 完整链路</p>
+</div>
+
+<div class="phone">
+  <div class="dynamic-island"></div>
+  <div class="screen">
+
+    <!-- Status bar -->
+    <div class="status-bar">
+      <span class="status-time">12:04</span>
+      <div class="status-icons">
+        <!-- Signal -->
+        <svg width="18" height="13" viewBox="0 0 18 13" fill="none">
+          <rect x="0"   y="8"  width="3.5" height="5"   rx="1" fill="#1C1C1E"/>
+          <rect x="4.5" y="5.5" width="3.5" height="7.5" rx="1" fill="#1C1C1E"/>
+          <rect x="9"   y="3"  width="3.5" height="10"  rx="1" fill="#1C1C1E"/>
+          <rect x="13.5" y="0" width="3.5" height="13"  rx="1" fill="#1C1C1E"/>
+        </svg>
+        <!-- WiFi -->
+        <svg width="17" height="13" viewBox="0 0 17 13" fill="none">
+          <circle cx="8.5" cy="11.5" r="1.5" fill="#1C1C1E"/>
+          <path d="M5.2 8.8A4.7 4.7 0 0 1 8.5 7.5a4.7 4.7 0 0 1 3.3 1.3" stroke="#1C1C1E" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+          <path d="M2.2 5.8A8.2 8.2 0 0 1 8.5 3.5a8.2 8.2 0 0 1 6.3 2.3" stroke="#1C1C1E" stroke-width="1.4" stroke-linecap="round" fill="none" opacity="0.5"/>
+        </svg>
+        <!-- Battery -->
+        <svg width="26" height="13" viewBox="0 0 26 13" fill="none">
+          <rect x="0.5" y="0.5" width="22" height="12" rx="3.5" stroke="#1C1C1E" stroke-opacity="0.35"/>
+          <rect x="2" y="2" width="17" height="9" rx="2.5" fill="#1C1C1E"/>
+          <path d="M24 4.5V8.5C24.8 8.2 25.5 7.4 25.5 6.5S24.8 4.8 24 4.5Z" fill="#1C1C1E" opacity="0.4"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Header -->
+    <div class="chat-header">
+      <!-- Logo -->
+      <div class="logo-mark">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <path d="M4 5 H18 L4 17 H18"
+                stroke="white" stroke-width="2.8"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <div class="header-info">
+        <div class="header-title">智能汽车客服</div>
+        <div class="header-sub" id="headerSub">
+          <div class="header-sub-dot ai" id="headerDot"></div>
+          <span class="header-sub-text" id="headerSubText">AI 客服在线 · 全天候服务</span>
+        </div>
+      </div>
+
+      <div class="svc-badge ai" id="svcBadge">AI 客服</div>
+
+      <button class="hdr-menu" aria-label="更多选项">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <circle cx="8" cy="3"  r="1.4" fill="#636366"/>
+          <circle cx="8" cy="8"  r="1.4" fill="#636366"/>
+          <circle cx="8" cy="13" r="1.4" fill="#636366"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- ─── Messages ─── -->
+    <div class="chat-body" id="chatBody">
+
+      <div class="day-sep" id="daySep">今天</div>
+
+      <!-- AI: greeting -->
+      <div class="mg ai turn-gap">
+        <div class="av bot">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M3 3.5 H13 L3 12.5 H13" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="bc">
+          <div class="b ai">您好！我是极氪智能客服，请问有什么可以帮助您？</div>
+          <div class="b ai">您可以点击下方快捷按钮，或者直接输入您的问题。</div>
+          <div class="bt" id="greetTime"></div>
+        </div>
+      </div>
+
+      <div style="height:8px;flex-shrink:0;"></div>
+    </div><!-- /chat-body -->
+
+    <!-- Quick actions -->
+    <div class="quick-area">
+      <div class="quick-label">常见问题</div>
+      <div class="quick-row">
+        <button class="qc"><span class="qi">🚗</span>车型咨询</button>
+        <button class="qc"><span class="qi">💰</span>价格查询</button>
+        <button class="qc"><span class="qi">🗓</span>试驾预约</button>
+        <button class="qc"><span class="qi">🔧</span>保养咨询</button>
+        <button class="qc"><span class="qi">🛠</span>维修咨询</button>
+        <button class="qc"><span class="qi">🆘</span>道路救援</button>
+      </div>
+    </div>
+
+    <!-- Input area -->
+    <div class="input-area">
+      <div class="input-row">
+        <button class="attach-btn" aria-label="更多功能">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="#8E8E93" stroke-width="1.6"/>
+            <path d="M12 7.5V16.5M7.5 12H16.5" stroke="#8E8E93" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <div class="input-wrap">
+          <input class="chat-input" id="chatInput" type="text" placeholder="输入您的问题…" autocomplete="off">
+        </div>
+        <button class="send-btn" id="sendBtn" aria-label="发送">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M9 15V4M9 4L4.5 8.5M9 4L13.5 8.5"
+                  stroke="white" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Home bar -->
+    <div class="home-bar">
+      <div class="home-line"></div>
+    </div>
+
+  </div><!-- /screen -->
+</div><!-- /phone -->
+
+<script>
+  'use strict';
+
+  // ── 时间工具 ──
+  function now() {
+    const d = new Date();
+    return `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+  }
+  document.getElementById('greetTime').textContent = now();
+  document.getElementById('daySep').textContent = '今天 ' + now();
+
+  // ── 状态 ──
+  const chatBody = document.getElementById('chatBody');
+  const input    = document.getElementById('chatInput');
+  let msgCount   = 0;   // 用户发送次数
+  let isHuman    = false;
+  let isTyping   = false;
+  let ticketNo   = null;
+
+  // ── 滚到底部 ──
+  function scrollBottom() {
+    chatBody.scrollTop = chatBody.scrollHeight;
+  }
+  scrollBottom();
+
+  // ── 添加消息节点 ──
+  const BOT_SVG = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <path d="M3 3.5 H13 L3 12.5 H13" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+
+  function addUserMsg(text) {
+    const t = now();
+    const div = document.createElement('div');
+    div.className = 'mg user turn-gap';
+    div.innerHTML = `<div class="bc">
+      <div class="b user">${esc(text)}</div>
+      <div class="bt">${t}</div>
+    </div><div class="av ghost"></div>`;
+    chatBody.insertBefore(div, chatBody.lastElementChild);
+    scrollBottom();
+  }
+
+  function addAIMsg(text, isAgent = false) {
+    const t = now();
+    const div = document.createElement('div');
+    div.className = 'mg ai turn-gap';
+    const avInner = isAgent
+      ? `<div class="av agent">张</div>`
+      : `<div class="av bot">${BOT_SVG}</div>`;
+    div.innerHTML = `${avInner}<div class="bc">
+      <div class="b ai">${esc(text)}</div>
+      <div class="bt">${t}</div>
+    </div>`;
+    chatBody.insertBefore(div, chatBody.lastElementChild);
+    scrollBottom();
+  }
+
+  function addSysPill(text, color) {
+    const div = document.createElement('div');
+    div.className = 'mg sys';
+    div.innerHTML = `<div class="sp ${color}"><div class="sp-dot"></div>${text}</div>`;
+    chatBody.insertBefore(div, chatBody.lastElementChild);
+    scrollBottom();
+  }
+
+  function showTyping(isAgent = false) {
+    removeTyping();
+    const div = document.createElement('div');
+    div.id = 'typingEl';
+    div.className = 'mg ai';
+    const avInner = isAgent
+      ? `<div class="av agent">张</div>`
+      : `<div class="av bot">${BOT_SVG}</div>`;
+    div.innerHTML = `${avInner}<div class="bc"><div class="typing-bub">
+      <div class="td"></div><div class="td"></div><div class="td"></div>
+    </div></div>`;
+    chatBody.insertBefore(div, chatBody.lastElementChild);
+    scrollBottom();
+  }
+  function removeTyping() {
+    const el = document.getElementById('typingEl');
+    if (el) el.remove();
+  }
+
+  function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  // ── 转为人工状态 ──
+  function switchToHuman() {
+    isHuman = true;
+    const t = now();
+    ticketNo = 'T' + Date.now().toString().slice(-8);
+    addSysPill(`工单 ${ticketNo} 已创建 · 高优先级 · 预计等待 1 分钟`, 'orange');
+    setTimeout(() => {
+      addSysPill(`人工客服 张三 已接入 · ${t}`, 'blue');
+      // 更新 header
+      document.getElementById('headerDot').className = 'header-sub-dot human';
+      document.getElementById('headerSubText').textContent = `工单 ${ticketNo} · 张三服务中`;
+      document.getElementById('svcBadge').className = 'svc-badge human';
+      document.getElementById('svcBadge').textContent = '人工客服';
+      input.placeholder = '回复张三…';
+      setTimeout(() => {
+        showTyping(true);
+        setTimeout(() => {
+          removeTyping();
+          addAIMsg('您好！我是客服张三，已查看了您的问题。请问我可以怎么帮您？', true);
+        }, 1600);
+      }, 600);
+    }, 1200);
+  }
+
+  // ── AI 回复规则 ──
+  const RULES = [
+    { re: /价格|报价|多少钱|优惠|购车/,
+      reply: '目前极氪 001 起售价 26.90 万，极氪 007 起售价 20.99 万，极氪 Mix 起售价 24.99 万。如需最新优惠，建议联系当地门店或拨打 400 热线。' },
+    { re: /续航|里程|充电|电池|快充/,
+      reply: '极氪 001 最长续航 870km（CLTC），支持 800V 超快充，10→80% 约 26 分钟。极氪 007 长续航版达 688km，同样支持高压快充。' },
+    { re: /保养|保修|质保|维保/,
+      reply: '极氪提供 4 年或 12 万公里整车质保，动力电池 8 年或 16 万公里质保，常规保养建议每 2 万公里或每年进行一次。' },
+    { re: /试驾|预约/,
+      reply: '可通过极氪 App 或官网预约试驾，通常当日即可安排。请问您在哪个城市？我帮您查询最近的体验店。' },
+    { re: /异响|噪音|嗡嗡|振动|底盘|故障|坏了|出问题/,
+      reply: '针对车辆异响/故障问题，建议前往极氪服务中心进行专业检测。如果情况紧急，我可以为您转接人工客服进一步跟进。' },
+    { re: /人工|客服|转接|真人|帮不了/,
+      reply: '好的，正在为您连接人工客服，请稍候…',
+      action: 'transfer' },
+    { re: /极氪|车型|配置|参数|001|007|mix/i,
+      reply: '极氪目前主销三款车型：001（旗舰轿跑 SUV）、007（中大型轿车）和 Mix（家用 MPV）。请问您最感兴趣的是哪款，还是有具体配置想了解？' },
+    { re: /谢谢|感谢|好的|明白|了解|没问题/,
+      reply: '不客气！如果还有其他问题随时可以问我。😊' },
+  ];
+
+  const FALLBACKS = [
+    '您的问题我已记录，正在知识库检索中，请稍候…\n\n如未找到满意答案，可以点击「转接人工」获得进一步帮助。',
+    '感谢您的咨询。这个问题需要结合您的车辆具体情况判断，建议联系人工客服或预约到店检查。',
+    '您好，关于您提到的问题，我建议您拨打极氪 400-818-0818 热线，或前往最近的服务中心。需要我帮您查询附近网点吗？',
+  ];
+  let fallbackIdx = 0;
+
+  function getAIReply(text) {
+    for (const rule of RULES) {
+      if (rule.re.test(text)) return rule;
+    }
+    return { reply: FALLBACKS[fallbackIdx++ % FALLBACKS.length] };
+  }
+
+  // ── 发送逻辑 ──
+  function sendMessage() {
+    const text = input.value.trim();
+    if (!text || isTyping) return;
+    input.value = '';
+    msgCount++;
+    addUserMsg(text);
+    isTyping = true;
+
+    const delay = 900 + Math.random() * 700;
+
+    if (isHuman) {
+      // 人工模式：简单回应
+      showTyping(true);
+      const agentReplies = [
+        '好的，我这边看一下您的情况。',
+        '明白了，请稍等，我帮您核实一下。',
+        `根据您描述的情况，建议您${['预约到店检查', '联系当地服务中心', '通过极氪 App 提交工单'][msgCount % 3]}。`,
+        '好的，我已为您记录，稍后会有专人跟进，感谢您的耐心等待。',
+      ];
+      setTimeout(() => {
+        removeTyping();
+        addAIMsg(agentReplies[msgCount % agentReplies.length], true);
+        isTyping = false;
+      }, delay);
+      return;
+    }
+
+    // AI 模式
+    showTyping(false);
+    setTimeout(() => {
+      removeTyping();
+      const { reply, action } = getAIReply(text);
+      addAIMsg(reply);
+      isTyping = false;
+      if (action === 'transfer') {
+        setTimeout(switchToHuman, 800);
+        return;
+      }
+      // 第 4 次消息后主动建议转人工
+      if (msgCount >= 4 && !isHuman) {
+        setTimeout(() => {
+          addSysPill('AI 已连续处理多轮，如未解决可转接人工客服', 'neutral');
+          scrollBottom();
+        }, 600);
+      }
+    }, delay);
+  }
+
+  // ── 绑定 ──
+  document.getElementById('sendBtn').addEventListener('click', sendMessage);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+
+  // ── 快捷按钮 ──
+  document.querySelectorAll('.qc').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const label = btn.textContent.trim().replace(/^[^一-龥a-zA-Z0-9]+/, '');
+      input.value = label;
+      input.focus();
+    });
+  });
+</script>
+</body>
+</html>

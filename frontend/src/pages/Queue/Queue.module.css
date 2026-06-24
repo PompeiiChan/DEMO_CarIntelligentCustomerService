@@ -1,0 +1,486 @@
+/* ─── App shell ─── */
+.appShell {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* ─── Toolbar ─── */
+.toolbar {
+  height: 52px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--sep);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 0;
+  flex-shrink: 0;
+  z-index: 20;
+}
+
+.tbBrand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-shrink: 0;
+}
+
+.tbLogo {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: linear-gradient(140deg, #0077E6 0%, #0055BB 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 5px rgba(0, 102, 204, 0.22);
+}
+
+.tbTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.tbDivider {
+  width: 1px;
+  height: 22px;
+  background: var(--sep);
+  margin: 0 14px;
+  flex-shrink: 0;
+}
+
+.tbBreadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.tbBcLink {
+  color: var(--text-2);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.tbBcLink:hover {
+  color: var(--brand);
+}
+
+.tbBcSep {
+  color: var(--text-3);
+}
+
+.tbBcCurrent {
+  color: var(--text-1);
+  font-weight: 500;
+}
+
+.tbSpacer {
+  flex: 1;
+}
+
+.agentStatus {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 11px;
+  background: var(--fill);
+  border-radius: 20px;
+}
+
+.agentDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+  flex-shrink: 0;
+}
+
+.agentName {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-1);
+}
+
+.agentLabel {
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+/* ─── Stats bar ─── */
+.statsBar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--sep);
+  padding: 0 24px;
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  flex-shrink: 0;
+  height: 70px;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 24px;
+  border-right: 1px solid var(--sep);
+}
+
+.statItem:first-child {
+  padding-left: 0;
+}
+
+.statItem:last-child {
+  border-right: none;
+}
+
+.statNum {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.statNumRed    { color: var(--danger); }
+.statNumOrange { color: var(--warning); }
+.statNumBlue   { color: var(--brand); }
+.statNumGreen  { color: var(--success); }
+
+.statLabel {
+  font-size: 12px;
+  color: var(--text-3);
+  font-weight: 500;
+}
+
+.statSpacer {
+  flex: 1;
+}
+
+.refreshIndicator {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.refreshDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* ─── Main ─── */
+.main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+  min-height: 0;
+}
+
+.main::-webkit-scrollbar { width: 5px; }
+.main::-webkit-scrollbar-track { background: transparent; }
+.main::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.1); border-radius: 3px; }
+
+/* ─── Filter row ─── */
+.filterRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.fc {
+  padding: 6px 14px;
+  border: 1px solid var(--sep);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--surface);
+  color: var(--text-2);
+  cursor: pointer;
+  font-family: var(--font);
+  transition: all 0.12s;
+  white-space: nowrap;
+}
+
+.fcActive {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: white;
+}
+
+.fcNegative {
+  background: rgba(255, 59, 48, 0.1);
+  border-color: rgba(255, 59, 48, 0.2);
+  color: #C0241B;
+}
+
+.fcNegativeActive {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: white;
+}
+
+.filterSpacer {
+  flex: 1;
+}
+
+.sortSelect {
+  padding: 6px 12px;
+  border: 1px solid var(--sep);
+  border-radius: 8px;
+  font-size: 13px;
+  background: var(--surface);
+  color: var(--text-2);
+  cursor: pointer;
+  font-family: var(--font);
+  outline: none;
+}
+
+/* ─── Section divider ─── */
+.sectionDivider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 20px 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-3);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sectionDivider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--sep);
+}
+
+/* ─── Ticket list ─── */
+.ticketList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ─── Ticket card ─── */
+.tc {
+  background: var(--surface);
+  border: 1px solid var(--sep);
+  border-radius: 14px;
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+  cursor: pointer;
+  transition: box-shadow 0.15s, transform 0.12s;
+}
+
+.tc:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.09);
+  transform: translateY(-1px);
+}
+
+.tcInProgress {
+  opacity: 0.72;
+}
+
+.tcStripe {
+  width: 4px;
+  flex-shrink: 0;
+}
+
+.tcStripeHigh   { background: var(--danger); }
+.tcStripeMedium { background: var(--warning); }
+.tcStripeLow    { background: var(--brand); }
+.tcStripeServing { background: var(--success); }
+
+.tcBody {
+  flex: 1;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.tcAv {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+}
+
+.tcContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.tcTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.tcName {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.tcTicket {
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.tagSm {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 5px;
+}
+
+.tagAfter  { background: rgba(255, 149, 0, 0.10); color: #A06000; }
+.tagBefore { background: rgba(0, 102, 204, 0.10); color: var(--brand); }
+.tagNeg    { background: rgba(255, 59, 48, 0.10);  color: #C0241B; }
+.tagOk     { background: rgba(40, 205, 65, 0.10);  color: #1A7030; }
+
+.tcPreview {
+  font-size: 13.5px;
+  color: var(--text-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 6px;
+}
+
+.tcMeta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.tcMetaItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tcMetaVal {
+  font-weight: 500;
+  color: var(--text-2);
+}
+
+.tcMetaValUrgent {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.reasonChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: var(--fill);
+  border-radius: 5px;
+  font-size: 11.5px;
+  color: var(--text-2);
+}
+
+.tcRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 14px 16px;
+  flex-shrink: 0;
+  gap: 10px;
+}
+
+.prioBadge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 6px;
+}
+
+.prioBadgeHigh   { background: rgba(255, 59, 48, 0.10);  color: #C0241B; }
+.prioBadgeMedium { background: rgba(255, 149, 0, 0.10);  color: #A06000; }
+.prioBadgeLow    { background: rgba(0, 102, 204, 0.10);  color: var(--brand); }
+
+.inProgressBadge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: rgba(40, 205, 65, 0.10);
+  color: #1A7030;
+}
+
+.acceptBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 16px;
+  height: 34px;
+  border: none;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font);
+  text-decoration: none;
+  transition: opacity 0.12s, transform 0.1s;
+  white-space: nowrap;
+}
+
+.acceptBtn:active {
+  transform: scale(0.96);
+}
+
+.acceptBtnUrgent {
+  background: var(--danger);
+  color: white;
+  box-shadow: 0 2px 8px rgba(255, 59, 48, 0.25);
+}
+
+.acceptBtnNormal {
+  background: var(--brand);
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 102, 204, 0.22);
+}
+
+.acceptBtnDisabled {
+  background: var(--fill);
+  color: var(--text-3);
+  box-shadow: none;
+  cursor: default;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.acceptBtn:not(.acceptBtnDisabled):hover {
+  opacity: 0.85;
+}

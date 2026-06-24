@@ -1,0 +1,59 @@
+.phone {
+  width: 393px;
+  background: #111;
+  border-radius: 54px;
+  padding: 14px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 40px 100px rgba(0, 0, 0, 0.32),
+    0 16px 32px rgba(0, 0, 0, 0.18);
+  position: relative;
+}
+
+/* Left side buttons */
+.phone::before {
+  content: '';
+  position: absolute;
+  left: -3px;
+  top: 120px;
+  width: 3px;
+  height: 36px;
+  background: #2a2a2a;
+  border-radius: 2px 0 0 2px;
+  box-shadow: 0 50px 0 #2a2a2a, 0 96px 0 #2a2a2a;
+}
+
+/* Right side button */
+.phone::after {
+  content: '';
+  position: absolute;
+  right: -3px;
+  top: 148px;
+  width: 3px;
+  height: 68px;
+  background: #2a2a2a;
+  border-radius: 0 2px 2px 0;
+}
+
+.dynamicIsland {
+  position: absolute;
+  top: 26px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 122px;
+  height: 35px;
+  background: #000;
+  border-radius: 20px;
+  z-index: 200;
+}
+
+.screen {
+  background: #F2F2F7;
+  border-radius: 42px;
+  overflow: hidden;
+  height: 852px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}

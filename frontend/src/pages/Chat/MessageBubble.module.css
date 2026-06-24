@@ -1,0 +1,133 @@
+.msgGroup {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.msgGroupAi {
+  align-items: flex-start;
+}
+
+.msgGroupUser {
+  flex-direction: row-reverse;
+  align-items: flex-start;
+}
+
+.msgGroupSys {
+  justify-content: center;
+  margin: 7px 0;
+}
+
+.turnGap {
+  margin-bottom: 10px;
+}
+
+/* Avatar */
+.av {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.avBot {
+  background: linear-gradient(140deg, #0077E6 0%, #0055BB 100%);
+  box-shadow: 0 1px 4px rgba(0, 102, 204, 0.22);
+}
+
+.avAgent {
+  background: linear-gradient(140deg, #6B69F0 0%, #4E4CD9 100%);
+  color: white;
+  box-shadow: 0 1px 4px rgba(94, 92, 230, 0.22);
+}
+
+.avGhost {
+  visibility: hidden;
+}
+
+/* Bubble column */
+.bc {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-width: 73%;
+}
+
+.msgGroupUser .bc {
+  align-items: flex-end;
+}
+
+/* Bubble */
+.bubble {
+  padding: 10px 14px;
+  font-size: 14px;
+  line-height: 1.55;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.bubbleAi {
+  background: #ffffff;
+  color: #1C1C1E;
+  border-radius: 4px 18px 18px 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
+}
+
+.bubbleUser {
+  background: #0066CC;
+  color: #ffffff;
+  border-radius: 18px 4px 18px 18px;
+}
+
+.bubbleTimestamp {
+  font-size: 11px;
+  color: #8E8E93;
+  padding: 0 2px;
+  margin-top: 1px;
+}
+
+.msgGroupUser .bubbleTimestamp {
+  text-align: right;
+}
+
+/* System pill */
+.sysPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 11px;
+  font-size: 11.5px;
+  max-width: 88%;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.sysPillNeutral {
+  background: rgba(120, 120, 128, 0.12);
+  color: #636366;
+}
+
+.sysPillOrange {
+  background: rgba(255, 159, 10, 0.1);
+  color: #A86B00;
+}
+
+.sysPillBlue {
+  background: rgba(0, 102, 204, 0.09);
+  color: #0055A8;
+}
+
+.spDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}

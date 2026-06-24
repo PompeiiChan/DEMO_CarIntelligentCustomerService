@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>智能汽车客服 · Demo 启动器</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brand:      #0066CC;
+      --brand-deep: #004D99;
+      --success:    #30D158;
+      --warning:    #FF9500;
+      --purple:     #5E5CE6;
+      --teal:       #32ADE6;
+
+      --bg:         #F2F2F7;
+      --surface:    #FFFFFF;
+      --sep:        rgba(60,60,67,0.13);
+      --fill:       rgba(120,120,128,0.10);
+
+      --text-1:     #1C1C1E;
+      --text-2:     #636366;
+      --text-3:     #8E8E93;
+
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text-1);
+      min-height: 100vh;
+    }
+
+    /* ─── Hero ─── */
+    .hero {
+      background: linear-gradient(160deg, #000E24 0%, #001D47 55%, #002D6B 100%);
+      padding: 64px 40px 72px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    /* Subtle grid lines */
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+    /* Glow */
+    .hero::after {
+      content: '';
+      position: absolute;
+      top: -120px; left: 50%;
+      transform: translateX(-50%);
+      width: 600px; height: 400px;
+      background: radial-gradient(ellipse, rgba(0,102,204,0.25) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-inner { position: relative; z-index: 1; }
+
+    .hero-logo {
+      width: 72px; height: 72px;
+      border-radius: 22px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.18);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      backdrop-filter: blur(10px);
+    }
+
+    .hero-title {
+      font-size: 34px;
+      font-weight: 700;
+      color: #FFFFFF;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+    .hero-sub {
+      font-size: 16px;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 28px;
+    }
+
+    .arch-chips {
+      display: inline-flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .arch-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 13px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px;
+      font-size: 12.5px;
+      color: rgba(255,255,255,0.7);
+    }
+    .arch-chip-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--success);
+    }
+
+    /* ─── Main content ─── */
+    .main {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 48px 40px 80px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-3);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    /* ─── Role cards ─── */
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .role-card {
+      background: var(--surface);
+      border: 1px solid var(--sep);
+      border-radius: 18px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: box-shadow 0.18s, transform 0.18s;
+    }
+    .role-card:hover {
+      box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+      transform: translateY(-2px);
+    }
+    .role-card.disabled { opacity: 0.6; }
+
+    .rc-top {
+      padding: 24px 24px 20px;
+      border-bottom: 1px solid var(--sep);
+    }
+    .rc-icon {
+      width: 48px; height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+    }
+    .rc-icon.blue   { background: rgba(0,102,204,0.10); }
+    .rc-icon.purple { background: rgba(94,92,230,0.10); }
+    .rc-icon.teal   { background: rgba(50,173,230,0.10); }
+    .rc-icon.orange { background: rgba(255,149,0,0.10); }
+
+    .rc-role {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .rc-role.blue   { color: var(--brand); }
+    .rc-role.purple { color: var(--purple); }
+    .rc-role.teal   { color: var(--teal); }
+    .rc-role.orange { color: var(--warning); }
+
+    .rc-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-1);
+      margin-bottom: 6px;
+      letter-spacing: -0.2px;
+    }
+    .rc-desc {
+      font-size: 13px;
+      color: var(--text-2);
+      line-height: 1.6;
+    }
+
+    /* Pages list */
+    .rc-pages {
+      padding: 16px 24px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .rc-page-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+    .page-badge {
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 5px;
+      flex-shrink: 0;
+    }
+    .page-badge.done    { background: rgba(48,209,88,0.12);  color: #1D8833; }
+    .page-badge.pending { background: rgba(120,120,128,0.12); color: var(--text-3); }
+    .page-name { color: var(--text-1); }
+    .page-desc { color: var(--text-3); font-size: 12px; }
+
+    /* Enter button */
+    .rc-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--sep);
+    }
+    .enter-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      height: 42px;
+      border: none;
+      border-radius: 11px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font);
+      text-decoration: none;
+      transition: opacity 0.13s, transform 0.1s;
+    }
+    .enter-btn:active { transform: scale(0.98); }
+    .enter-btn.blue   { background: var(--brand); color: white; box-shadow: 0 2px 10px rgba(0,102,204,0.25); }
+    .enter-btn.purple { background: var(--purple); color: white; box-shadow: 0 2px 10px rgba(94,92,230,0.25); }
+    .enter-btn.teal   { background: var(--teal); color: white; box-shadow: 0 2px 10px rgba(50,173,230,0.25); }
+    .enter-btn.gray   { background: var(--fill); color: var(--text-3); cursor: not-allowed; }
+    .enter-btn:hover:not(.gray) { opacity: 0.88; }
+
+    /* ─── Debug card (full width, compact) ─── */
+    .debug-card {
+      background: var(--surface);
+      border: 1px solid var(--sep);
+      border-radius: 14px;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 48px;
+    }
+    .debug-icon {
+      width: 40px; height: 40px;
+      border-radius: 11px;
+      background: rgba(255,149,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .debug-info { flex: 1; }
+    .debug-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    .debug-desc { font-size: 13px; color: var(--text-2); }
+    .debug-enter {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 0 16px;
+      height: 34px;
+      background: rgba(255,149,0,0.1);
+      color: #A06000;
+      border: none;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font);
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+    .debug-enter:hover { background: rgba(255,149,0,0.18); }
+
+    /* ─── Demo flow guide ─── */
+    .flow-box {
+      background: var(--surface);
+      border: 1px solid var(--sep);
+      border-radius: 14px;
+      padding: 22px 28px;
+    }
+    .flow-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .flow-steps {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+    }
+    .flow-step {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+    }
+    /* Arrow connector */
+    .flow-step:not(:last-child)::after {
+      content: '→';
+      position: absolute;
+      right: -12px;
+      top: 12px;
+      font-size: 14px;
+      color: var(--text-3);
+    }
+    .flow-step-num {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: var(--brand);
+      color: white;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 6px;
+      flex-shrink: 0;
+    }
+    .flow-step-text {
+      font-size: 12px;
+      color: var(--text-2);
+      line-height: 1.5;
+      padding: 0 8px;
+    }
+    .flow-step-text strong {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-1);
+      margin-bottom: 2px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── Hero ─── -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-logo">
+      <svg width="38" height="38" viewBox="0 0 38 38" fill="none">
+        <path d="M7 10 H31 L7 28 H31"
+              stroke="white" stroke-width="4"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="hero-title">智能汽车客服</div>
+    <div class="hero-sub">V1 MVP · Demo 演示系统</div>
+    <div class="arch-chips">
+      <div class="arch-chip">
+        <div class="arch-chip-dot"></div>
+        同一 Web 应用
+      </div>
+      <div class="arch-chip">
+        <div class="arch-chip-dot"></div>
+        三端路由分离
+      </div>
+      <div class="arch-chip">
+        <div class="arch-chip-dot"></div>
+        角色权限控制
+      </div>
+      <div class="arch-chip">
+        <div class="arch-chip-dot" style="background:#FF9500"></div>
+        LangGraph Agent
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Main ─── -->
+<div class="main">
+
+  <div class="section-label">选择视角进入 Demo</div>
+
+  <!-- Role cards -->
+  <div class="role-grid">
+
+    <!-- 用户端 -->
+    <div class="role-card">
+      <div class="rc-top">
+        <div class="rc-icon blue">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <rect x="5" y="2" width="14" height="20" rx="3" stroke="#0066CC" stroke-width="1.6"/>
+            <path d="M9 18h6" stroke="#0066CC" stroke-width="1.6" stroke-linecap="round"/>
+            <circle cx="12" cy="7" r="2" fill="#0066CC" opacity="0.5"/>
+            <path d="M9 11h6M9 14h4" stroke="#0066CC" stroke-width="1.4" stroke-linecap="round" opacity="0.7"/>
+          </svg>
+        </div>
+        <div class="rc-role blue">用户端</div>
+        <div class="rc-title">车主视角</div>
+        <div class="rc-desc">车主通过 Z客之家 发起咨询，与 AI 或人工客服对话，体验完整服务链路。</div>
+      </div>
+      <div class="rc-pages">
+        <div class="rc-page-row">
+          <span class="page-badge done">完成</span>
+          <span class="page-name">C01 对话页</span>
+          <span class="page-desc">· AI 对话 + 转人工</span>
+        </div>
+      </div>
+      <div class="rc-footer">
+        <a href="C01-客户端对话页.html" target="_blank" class="enter-btn blue">
+          进入用户端
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M3 7h8M8 4l3 3-3 3" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- 坐席端 -->
+    <div class="role-card">
+      <div class="rc-top">
+        <div class="rc-icon purple">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2C9.24 2 7 4.24 7 7v3H5v2h14v-2h-2V7c0-2.76-2.24-5-5-5Z" fill="#5E5CE6" opacity="0.25"/>
+            <path d="M7 10V7a5 5 0 0 1 10 0v3" stroke="#5E5CE6" stroke-width="1.6" stroke-linecap="round"/>
+            <rect x="3" y="10" width="18" height="10" rx="3" stroke="#5E5CE6" stroke-width="1.6"/>
+            <circle cx="9" cy="15" r="1.2" fill="#5E5CE6"/>
+            <circle cx="15" cy="15" r="1.2" fill="#5E5CE6"/>
+            <path d="M9 15h6" stroke="#5E5CE6" stroke-width="1.2" stroke-linecap="round" opacity="0.5"/>
+          </svg>
+        </div>
+        <div class="rc-role purple">坐席端</div>
+        <div class="rc-title">客服视角</div>
+        <div class="rc-desc">客服人员接手 AI 转来的工单，查看对话上下文，回复用户并完成工单流转。</div>
+      </div>
+      <div class="rc-pages">
+        <div class="rc-page-row">
+          <span class="page-badge done">完成</span>
+          <span class="page-name">S01 工作台</span>
+          <span class="page-desc">· 三栏 + AI 建议</span>
+        </div>
+        <div class="rc-page-row">
+          <span class="page-badge done">完成</span>
+          <span class="page-name">S02 对话列表</span>
+          <span class="page-desc">· 待接手队列</span>
+        </div>
+      </div>
+      <div class="rc-footer">
+        <a href="S01-坐席工作台.html" target="_blank" class="enter-btn purple">
+          进入坐席端
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M3 7h8M8 4l3 3-3 3" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- 管理端 -->
+    <div class="role-card">
+      <div class="rc-top">
+        <div class="rc-icon teal">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="3" stroke="#32ADE6" stroke-width="1.6"/>
+            <path d="M12 2v3M12 19v3M2 12h3M19 12h3M5.64 5.64l2.12 2.12M16.24 16.24l2.12 2.12M5.64 18.36l2.12-2.12M16.24 7.76l2.12-2.12"
+                  stroke="#32ADE6" stroke-width="1.6" stroke-linecap="round" opacity="0.7"/>
+          </svg>
+        </div>
+        <div class="rc-role teal">管理端</div>
+        <div class="rc-title">管理员视角</div>
+        <div class="rc-desc">管理员维护知识库文档、配置意图分类、管理坐席账号和查看系统统计数据。</div>
+      </div>
+      <div class="rc-pages">
+        <div class="rc-page-row">
+          <span class="page-badge done">完成</span>
+          <span class="page-name">A02 知识库管理</span>
+          <span class="page-desc">· 上传 + 4步处理管线</span>
+        </div>
+        <div class="rc-page-row">
+          <span class="page-badge pending">待做</span>
+          <span class="page-name">A03 意图配置</span>
+        </div>
+        <div class="rc-page-row">
+          <span class="page-badge pending">待做</span>
+          <span class="page-name">A05 坐席管理</span>
+        </div>
+      </div>
+      <div class="rc-footer">
+        <a href="A02-知识库管理.html" target="_blank" class="enter-btn teal">
+          进入管理端
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M3 7h8M8 4l3 3-3 3" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Debug card -->
+  <div class="debug-card">
+    <div class="debug-icon">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M10 2L6 8h3v3L5 17h5v1h2v-1h5l-4-6v-3h3L10 2Z"
+              fill="#FF9500" opacity="0.8"/>
+        <path d="M10 2L6 8h3v3L5 17h5v1h2v-1h5l-4-6v-3h3L10 2Z"
+              stroke="#FF9500" stroke-width="0.5"/>
+      </svg>
+    </div>
+    <div class="debug-info">
+      <div class="debug-title">D01 · Agent 调试页</div>
+      <div class="debug-desc">查看历史对话的 AI 节点流转状态 · 情绪识别 → 意图识别 → 知识检索 → 回复生成</div>
+    </div>
+    <a href="D01-Agent调试页.html" target="_blank" class="debug-enter">
+      进入调试端 →
+    </a>
+  </div>
+
+  <!-- Demo flow guide -->
+  <div class="section-label">推荐演示路径</div>
+  <div class="flow-box">
+    <div class="flow-title">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+        <path d="M7.5 1L5.5 6.5H8L4.5 13.5L6.5 8H4L7.5 1Z" fill="#0066CC"/>
+      </svg>
+      按以下顺序演示，可完整展示 AI 对话 → 工单转接 → 坐席处理 全链路
+    </div>
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="flow-step-num">1</div>
+        <div class="flow-step-text">
+          <strong>发起 AI 咨询</strong>
+          C01 描述车辆问题，触发 AI 对话
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">2</div>
+        <div class="flow-step-text">
+          <strong>AI 转人工</strong>
+          连续未匹配或负面情绪触发工单创建
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">3</div>
+        <div class="flow-step-text">
+          <strong>坐席接手</strong>
+          S02 查看待接列表，S01 接手处理工单
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">4</div>
+        <div class="flow-step-text">
+          <strong>查看 AI 链路</strong>
+          D01 查看节点流转和置信度数据
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

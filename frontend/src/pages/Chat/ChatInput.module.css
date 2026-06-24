@@ -1,0 +1,98 @@
+.inputArea {
+  background: #ffffff;
+  border-top: 1px solid rgba(60, 60, 67, 0.14);
+  padding: 9px 14px 10px;
+  flex-shrink: 0;
+}
+
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.attachBtn {
+  width: 36px;
+  height: 36px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #8E8E93;
+  padding: 0;
+}
+
+.inputWrap {
+  flex: 1;
+  background: #F2F2F7;
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  min-height: 40px;
+  border: 1.5px solid transparent;
+  transition: border-color 0.18s, background 0.18s;
+}
+
+.inputWrap:focus-within {
+  background: #ffffff;
+  border-color: #0066CC;
+}
+
+.chatInput {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 15px;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
+  color: #1C1C1E;
+  outline: none;
+  padding: 9px 0;
+  resize: none;
+  line-height: 1.4;
+}
+
+.chatInput::placeholder {
+  color: #8E8E93;
+}
+
+.sendBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #0066CC;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 102, 204, 0.32);
+  transition: background 0.12s, transform 0.1s;
+  padding: 0;
+}
+
+.sendBtn:active {
+  transform: scale(0.92);
+  background: #004D99;
+}
+
+.homeBar {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  flex-shrink: 0;
+}
+
+.homeLine {
+  width: 134px;
+  height: 5px;
+  background: #1C1C1E;
+  border-radius: 3px;
+  opacity: 0.16;
+}

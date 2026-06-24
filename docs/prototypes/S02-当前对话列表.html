@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>汽车智能客服 - 当前对话列表（桌面Web）</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brand:       #0066CC;
+      --brand-deep:  #004D99;
+      --brand-light: #EBF3FF;
+      --success:     #28CD41;
+      --warning:     #FF9500;
+      --danger:      #FF3B30;
+      --purple:      #5E5CE6;
+
+      --bg:          #F2F2F7;
+      --surface:     #FFFFFF;
+      --fill:        rgba(120,120,128,0.10);
+      --fill-2:      rgba(120,120,128,0.06);
+
+      --text-1:      #1C1C1E;
+      --text-2:      #636366;
+      --text-3:      #8E8E93;
+      --sep:         rgba(60,60,67,0.13);
+
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
+    }
+
+    html, body { height: 100%; font-family: var(--font); background: var(--bg); color: var(--text-1); overflow: hidden; }
+
+    .app-shell { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* ─── Toolbar ─── */
+    .toolbar {
+      height: 52px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--sep);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 0;
+      flex-shrink: 0;
+      z-index: 20;
+    }
+    .tb-brand { display: flex; align-items: center; gap: 9px; flex-shrink: 0; }
+    .tb-logo {
+      width: 30px; height: 30px;
+      border-radius: 9px;
+      background: linear-gradient(140deg, #0077E6 0%, #0055BB 100%);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 1px 5px rgba(0,102,204,0.22);
+    }
+    .tb-title { font-size: 15px; font-weight: 600; color: var(--text-1); }
+    .tb-divider { width: 1px; height: 22px; background: var(--sep); margin: 0 14px; flex-shrink: 0; }
+    .tb-breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 14px; }
+    .tb-bc-link { color: var(--text-2); cursor: pointer; text-decoration: none; }
+    .tb-bc-link:hover { color: var(--brand); }
+    .tb-bc-sep { color: var(--text-3); }
+    .tb-bc-current { color: var(--text-1); font-weight: 500; }
+    .tb-spacer { flex: 1; }
+    .agent-status {
+      display: flex; align-items: center; gap: 7px;
+      padding: 5px 11px; background: var(--fill); border-radius: 20px;
+    }
+    .agent-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); flex-shrink: 0; }
+    .agent-name { font-size: 13px; font-weight: 500; color: var(--text-1); }
+    .agent-label { font-size: 12px; color: var(--text-3); }
+
+    /* ─── Stats bar ─── */
+    .stats-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--sep);
+      padding: 0 24px;
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      flex-shrink: 0;
+      height: 70px;
+    }
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 24px;
+      border-right: 1px solid var(--sep);
+    }
+    .stat-item:first-child { padding-left: 0; }
+    .stat-item:last-child { border-right: none; }
+    .stat-num {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .stat-num.red    { color: var(--danger); }
+    .stat-num.orange { color: var(--warning); }
+    .stat-num.blue   { color: var(--brand); }
+    .stat-num.green  { color: var(--success); }
+    .stat-label { font-size: 12px; color: var(--text-3); font-weight: 500; }
+    .stat-spacer { flex: 1; }
+
+    /* Auto refresh indicator */
+    .refresh-indicator {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      color: var(--text-3);
+      padding: 0;
+    }
+    .refresh-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.35; }
+    }
+
+    /* ─── Main ─── */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 24px;
+      min-height: 0;
+    }
+    .main::-webkit-scrollbar { width: 5px; }
+    .main::-webkit-scrollbar-track { background: transparent; }
+    .main::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 3px; }
+
+    /* ─── Filter row ─── */
+    .filter-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+    .fc {
+      padding: 6px 14px;
+      border: 1px solid var(--sep);
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      background: var(--surface);
+      color: var(--text-2);
+      cursor: pointer;
+      font-family: var(--font);
+      transition: all 0.12s;
+      white-space: nowrap;
+    }
+    .fc.on { background: var(--brand); border-color: var(--brand); color: white; }
+    .fc.danger-on { background: var(--danger); border-color: var(--danger); color: white; }
+    .filter-spacer { flex: 1; }
+    .sort-select {
+      padding: 6px 12px;
+      border: 1px solid var(--sep);
+      border-radius: 8px;
+      font-size: 13px;
+      background: var(--surface);
+      color: var(--text-2);
+      cursor: pointer;
+      font-family: var(--font);
+      outline: none;
+    }
+
+    /* ─── Ticket cards ─── */
+    .ticket-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .tc {
+      background: var(--surface);
+      border: 1px solid var(--sep);
+      border-radius: 14px;
+      display: flex;
+      align-items: stretch;
+      overflow: hidden;
+      cursor: pointer;
+      transition: box-shadow 0.15s, transform 0.12s;
+      position: relative;
+    }
+    .tc:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.09); transform: translateY(-1px); }
+
+    /* Priority stripe */
+    .tc-stripe {
+      width: 4px;
+      flex-shrink: 0;
+    }
+    .tc-stripe.high   { background: var(--danger); }
+    .tc-stripe.medium { background: var(--warning); }
+    .tc-stripe.low    { background: var(--brand); }
+
+    /* Card body */
+    .tc-body {
+      flex: 1;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    /* Avatar */
+    .tc-av {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+    .tc-av.c1 { background: linear-gradient(135deg,#FF3B30,#FF6B6B); }
+    .tc-av.c2 { background: linear-gradient(135deg,#FF9500,#FFBE33); }
+    .tc-av.c3 { background: linear-gradient(135deg,#0066CC,#0085FF); }
+    .tc-av.c4 { background: linear-gradient(135deg,#5E5CE6,#7B79F7); }
+
+    /* Content */
+    .tc-content { flex: 1; min-width: 0; }
+    .tc-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 5px;
+    }
+    .tc-name { font-size: 15px; font-weight: 600; color: var(--text-1); }
+    .tc-ticket { font-size: 12px; color: var(--text-3); }
+
+    .tag-sm {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 2px 7px;
+      border-radius: 5px;
+    }
+    .tag-after  { background: rgba(255,149,0,0.10); color: #A06000; }
+    .tag-before { background: rgba(0,102,204,0.10); color: var(--brand); }
+    .tag-neg    { background: rgba(255,59,48,0.10);  color: #C0241B; }
+    .tag-ok     { background: rgba(40,205,65,0.10);  color: #1A7030; }
+
+    .tc-preview {
+      font-size: 13.5px;
+      color: var(--text-1);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 6px;
+    }
+
+    .tc-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--text-3);
+    }
+    .tc-meta-item { display: flex; align-items: center; gap: 4px; }
+    .tc-meta-val { font-weight: 500; color: var(--text-2); }
+    .tc-meta-val.urgent { color: var(--danger); font-weight: 600; }
+
+    /* Transfer reason chip */
+    .reason-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      background: var(--fill);
+      border-radius: 5px;
+      font-size: 11.5px;
+      color: var(--text-2);
+    }
+
+    /* Right: priority + action */
+    .tc-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding: 14px 16px;
+      flex-shrink: 0;
+      gap: 10px;
+    }
+    .prio-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 6px;
+    }
+    .prio-badge.high   { background: rgba(255,59,48,0.10);  color: #C0241B; }
+    .prio-badge.medium { background: rgba(255,149,0,0.10);  color: #A06000; }
+    .prio-badge.low    { background: rgba(0,102,204,0.10);  color: var(--brand); }
+
+    .accept-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 0 16px;
+      height: 34px;
+      border: none;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font);
+      text-decoration: none;
+      transition: opacity 0.12s, transform 0.1s;
+      white-space: nowrap;
+    }
+    .accept-btn:active { transform: scale(0.96); }
+    .accept-btn.urgent { background: var(--danger); color: white; box-shadow: 0 2px 8px rgba(255,59,48,0.25); }
+    .accept-btn.normal { background: var(--brand); color: white; box-shadow: 0 2px 8px rgba(0,102,204,0.22); }
+    .accept-btn:hover { opacity: 0.85; }
+
+    /* Section divider */
+    .section-divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 20px 0 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-3);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .section-divider::after { content: ''; flex: 1; height: 1px; background: var(--sep); }
+
+    /* In-progress ticket (dimmed) */
+    .tc.in-progress { opacity: 0.72; }
+    .tc.in-progress .accept-btn { background: var(--fill); color: var(--text-3); box-shadow: none; cursor: default; pointer-events: none; }
+    .in-progress-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 6px;
+      background: rgba(40,205,65,0.10);
+      color: #1A7030;
+    }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- Toolbar -->
+  <header class="toolbar">
+    <div class="tb-brand">
+      <div class="tb-logo">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M2.5 3.5 H13.5 L2.5 12.5 H13.5"
+                stroke="white" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="tb-title">智能汽车客服</span>
+    </div>
+    <div class="tb-divider"></div>
+    <nav class="tb-breadcrumb">
+      <a href="S01-坐席工作台.html" class="tb-bc-link">坐席工作台</a>
+      <span class="tb-bc-sep">›</span>
+      <span class="tb-bc-current">对话列表</span>
+    </nav>
+    <div class="tb-spacer"></div>
+    <div class="agent-status">
+      <div class="agent-dot"></div>
+      <span class="agent-name">张三</span>
+      <span class="agent-label">· 空闲</span>
+    </div>
+  </header>
+
+  <!-- Stats bar -->
+  <div class="stats-bar">
+    <div class="stat-item">
+      <div class="stat-num red">4</div>
+      <div class="stat-label">待接手</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num green">1</div>
+      <div class="stat-label">服务中</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num orange">2:18</div>
+      <div class="stat-label">平均等待</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num red">2</div>
+      <div class="stat-label">紧急工单</div>
+    </div>
+    <div class="stat-spacer"></div>
+    <div class="refresh-indicator">
+      <div class="refresh-dot"></div>
+      自动刷新 · 每 30 秒
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- Filter row -->
+    <div class="filter-row">
+      <button class="fc on"        data-filter="全部">全部&ensp;<span class="fc-cnt">5</span></button>
+      <button class="fc"           data-filter="售前">售前&ensp;<span class="fc-cnt">2</span></button>
+      <button class="fc"           data-filter="售后">售后&ensp;<span class="fc-cnt">3</span></button>
+      <button class="fc danger-on" data-filter="负面情绪" style="background:rgba(255,59,48,0.1);border-color:rgba(255,59,48,0.2);color:#C0241B;">负面情绪&ensp;<span class="fc-cnt">1</span></button>
+      <div class="filter-spacer"></div>
+      <select class="sort-select" id="sortSelect">
+        <option value="wait">按等待时长排序</option>
+        <option value="prio">按优先级排序</option>
+        <option value="ticket">按工单创建时间</option>
+      </select>
+    </div>
+
+    <!-- Pending section -->
+    <div class="section-divider" id="divPending">待接手 · 4 条</div>
+
+    <div class="ticket-list">
+
+      <!-- Ticket 1: High, negative emotion -->
+      <div class="tc" data-tags="售后 负面情绪" data-wait="50"  data-prio="1" data-ticket="20250609003">
+        <div class="tc-stripe high"></div>
+        <div class="tc-body">
+          <div class="tc-av c1">陈</div>
+          <div class="tc-content">
+            <div class="tc-top">
+              <span class="tc-name">陈先生</span>
+              <span class="tc-ticket">T20250609003</span>
+              <span class="tag-sm tag-after">售后</span>
+              <span class="tag-sm tag-neg">负面情绪</span>
+            </div>
+            <div class="tc-preview">这车太垃圾了，刚买两个月就出毛病，这服务态度也太差了！</div>
+            <div class="tc-meta">
+              <div class="tc-meta-item">
+                等待
+                <span class="tc-meta-val urgent">0分50秒</span>
+              </div>
+              <div class="tc-meta-item">
+                对话
+                <span class="tc-meta-val">2 轮</span>
+              </div>
+              <div class="tc-meta-item">
+                <span class="reason-chip">负面情绪触发</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tc-right">
+          <span class="prio-badge high">紧急</span>
+          <a href="S01-坐席工作台.html" class="accept-btn urgent">
+            立即接手
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M2 6h8M7 3l3 3-3 3" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Ticket 2: High, maintenance -->
+      <div class="tc" data-tags="售后" data-wait="80"  data-prio="1" data-ticket="20250609001">
+        <div class="tc-stripe high"></div>
+        <div class="tc-body">
+          <div class="tc-av c2">李</div>
+          <div class="tc-content">
+            <div class="tc-top">
+              <span class="tc-name">李先生</span>
+              <span class="tc-ticket">T20250609001</span>
+              <span class="tag-sm tag-after">售后</span>
+              <span class="tag-sm tag-ok">情绪正常</span>
+            </div>
+            <div class="tc-preview">极氪 001 底盘异响，低速行驶有嗡嗡声，怀疑是传动轴问题</div>
+            <div class="tc-meta">
+              <div class="tc-meta-item">
+                等待
+                <span class="tc-meta-val urgent">1分20秒</span>
+              </div>
+              <div class="tc-meta-item">
+                对话
+                <span class="tc-meta-val">5 轮</span>
+              </div>
+              <div class="tc-meta-item">
+                <span class="reason-chip">连续3次未匹配</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tc-right">
+          <span class="prio-badge high">紧急</span>
+          <a href="S01-坐席工作台.html" class="accept-btn urgent">
+            立即接手
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M2 6h8M7 3l3 3-3 3" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Ticket 3: Medium, pre-sales -->
+      <div class="tc" data-tags="售前" data-wait="225" data-prio="2" data-ticket="20250609002">
+        <div class="tc-stripe medium"></div>
+        <div class="tc-body">
+          <div class="tc-av c3">王</div>
+          <div class="tc-content">
+            <div class="tc-top">
+              <span class="tc-name">王女士</span>
+              <span class="tc-ticket">T20250609002</span>
+              <span class="tag-sm tag-before">售前</span>
+              <span class="tag-sm tag-ok">情绪正常</span>
+            </div>
+            <div class="tc-preview">极氪 001 最新报价是多少？和极氪 007 比哪个更值得买？</div>
+            <div class="tc-meta">
+              <div class="tc-meta-item">
+                等待
+                <span class="tc-meta-val">3分45秒</span>
+              </div>
+              <div class="tc-meta-item">
+                对话
+                <span class="tc-meta-val">3 轮</span>
+              </div>
+              <div class="tc-meta-item">
+                <span class="reason-chip">用户主动要求</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tc-right">
+          <span class="prio-badge medium">普通</span>
+          <a href="S01-坐席工作台.html" class="accept-btn normal">
+            接手
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M2 6h8M7 3l3 3-3 3" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Ticket 4: Low, charging -->
+      <div class="tc" data-tags="售后" data-wait="302" data-prio="2" data-ticket="20250609004">
+        <div class="tc-stripe low"></div>
+        <div class="tc-body">
+          <div class="tc-av c4">赵</div>
+          <div class="tc-content">
+            <div class="tc-top">
+              <span class="tc-name">赵先生</span>
+              <span class="tc-ticket">T20250609004</span>
+              <span class="tag-sm tag-after">售后</span>
+              <span class="tag-sm tag-ok">情绪正常</span>
+            </div>
+            <div class="tc-preview">家用充电桩安装后充电速度异常，最高只有 7kW，设置里没找到调整选项</div>
+            <div class="tc-meta">
+              <div class="tc-meta-item">
+                等待
+                <span class="tc-meta-val">5分02秒</span>
+              </div>
+              <div class="tc-meta-item">
+                对话
+                <span class="tc-meta-val">4 轮</span>
+              </div>
+              <div class="tc-meta-item">
+                <span class="reason-chip">连续3次未匹配</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tc-right">
+          <span class="prio-badge low">普通</span>
+          <a href="S01-坐席工作台.html" class="accept-btn normal">
+            接手
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M2 6h8M7 3l3 3-3 3" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- In progress section -->
+    <div class="section-divider" id="divServing" style="margin-top:24px">服务中 · 1 条</div>
+
+    <div class="ticket-list">
+      <div class="tc in-progress" data-tags="售前">
+        <div class="tc-stripe" style="background:var(--success)"></div>
+        <div class="tc-body">
+          <div class="tc-av" style="background:linear-gradient(135deg,#28CD41,#34D058);font-size:16px;font-weight:700;color:white;width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">林</div>
+          <div class="tc-content">
+            <div class="tc-top">
+              <span class="tc-name">林女士</span>
+              <span class="tc-ticket">T20250609000</span>
+              <span class="tag-sm tag-before">售前</span>
+              <span class="tag-sm tag-ok">情绪正常</span>
+            </div>
+            <div class="tc-preview">想了解极氪 Mix 的第二排座椅是否可以全平，长途睡觉够不够宽敞</div>
+            <div class="tc-meta">
+              <div class="tc-meta-item">
+                已服务
+                <span class="tc-meta-val">08:24</span>
+              </div>
+              <div class="tc-meta-item">
+                坐席
+                <span class="tc-meta-val">张三</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tc-right">
+          <span class="in-progress-badge">服务中</span>
+          <button class="accept-btn" style="pointer-events:none;opacity:0.4;background:var(--fill);color:var(--text-3);box-shadow:none;">
+            接手
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<script>
+  'use strict';
+
+  let currentFilter = '全部';
+  let currentSort   = 'wait';
+
+  // ── 排序 ──
+  function applySort(sortBy) {
+    const pendingList = document.getElementById('divPending').nextElementSibling;
+    const cards = [...pendingList.querySelectorAll('.tc')];
+    cards.sort((a, b) => {
+      if (sortBy === 'wait')   return parseInt(b.dataset.wait)   - parseInt(a.dataset.wait);   // 等待最长排前面
+      if (sortBy === 'prio')   return parseInt(a.dataset.prio)   - parseInt(b.dataset.prio);   // 紧急优先
+      if (sortBy === 'ticket') return parseInt(a.dataset.ticket) - parseInt(b.dataset.ticket); // 最早创建排前面
+      return 0;
+    });
+    cards.forEach(c => pendingList.appendChild(c));
+  }
+
+  // ── 筛选 ──
+  function applyFilter(tag) {
+    const allCards = document.querySelectorAll('.tc');
+    let pendingShown = 0, servingShown = 0;
+
+    allCards.forEach(card => {
+      const tags    = card.dataset.tags || '';
+      const visible = tag === '全部' || tags.includes(tag);
+      card.style.display = visible ? '' : 'none';
+      if (visible) {
+        card.classList.contains('in-progress') ? servingShown++ : pendingShown++;
+      }
+    });
+
+    const dp = document.getElementById('divPending');
+    const ds = document.getElementById('divServing');
+    if (dp) dp.textContent = `待接手 · ${pendingShown} 条`;
+    if (ds) ds.textContent = `服务中 · ${servingShown} 条`;
+  }
+
+  // ── 联动入口：每次都先排序再筛选 ──
+  function refresh() {
+    applySort(currentSort);
+    applyFilter(currentFilter);
+  }
+
+  // ── 筛选按钮 ──
+  document.querySelectorAll('[data-filter]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentFilter = btn.dataset.filter;
+
+      document.querySelectorAll('[data-filter]').forEach(b => {
+        b.classList.remove('on');
+        if (b.dataset.filter === '负面情绪') {
+          b.style.background  = 'rgba(255,59,48,0.1)';
+          b.style.borderColor = 'rgba(255,59,48,0.2)';
+          b.style.color       = '#C0241B';
+        }
+      });
+      btn.classList.add('on');
+      if (btn.dataset.filter === '负面情绪') {
+        btn.style.background  = 'var(--danger, #FF3B30)';
+        btn.style.borderColor = 'var(--danger, #FF3B30)';
+        btn.style.color       = 'white';
+      } else {
+        btn.style.background  = '';
+        btn.style.borderColor = '';
+        btn.style.color       = '';
+      }
+
+      refresh();
+    });
+  });
+
+  // ── 排序下拉 ──
+  document.getElementById('sortSelect').addEventListener('change', function() {
+    currentSort = this.value;
+    refresh();
+  });
+
+  // 初始排序（默认按等待时长）
+  refresh();
+</script>
+</body>
+</html>

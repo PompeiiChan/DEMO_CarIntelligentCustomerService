@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>汽车智能客服 - 知识库管理（桌面Web）</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brand:       #0066CC;
+      --brand-light: #EBF3FF;
+      --success:     #28CD41;
+      --warning:     #FF9500;
+      --danger:      #FF3B30;
+      --purple:      #5E5CE6;
+      --teal:        #32ADE6;
+
+      --bg:          #F2F2F7;
+      --surface:     #FFFFFF;
+      --fill:        rgba(120,120,128,0.10);
+      --fill-2:      rgba(120,120,128,0.06);
+
+      --text-1:      #1C1C1E;
+      --text-2:      #636366;
+      --text-3:      #8E8E93;
+      --sep:         rgba(60,60,67,0.13);
+
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
+      --mono: "SF Mono", "Consolas", monospace;
+    }
+
+    html, body { height: 100%; font-family: var(--font); background: var(--bg); color: var(--text-1); overflow: hidden; }
+    .app-shell { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* ─── Toolbar ─── */
+    .toolbar {
+      height: 52px; background: var(--surface); border-bottom: 1px solid var(--sep);
+      display: flex; align-items: center; padding: 0 20px; flex-shrink: 0; z-index: 20;
+    }
+    .tb-brand { display: flex; align-items: center; gap: 9px; flex-shrink: 0; }
+    .tb-logo {
+      width: 30px; height: 30px; border-radius: 9px;
+      background: linear-gradient(140deg,#0077E6,#0055BB);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 1px 5px rgba(0,102,204,0.22);
+    }
+    .tb-title { font-size: 15px; font-weight: 600; }
+    .tb-div { width: 1px; height: 22px; background: var(--sep); margin: 0 14px; }
+    .tb-nav { display: flex; align-items: center; gap: 6px; font-size: 14px; }
+    .tb-link { color: var(--text-2); cursor: pointer; }
+    .tb-link:hover { color: var(--brand); }
+    .tb-sep-c { color: var(--text-3); }
+    .tb-cur { color: var(--text-1); font-weight: 500; }
+    .tb-spacer { flex: 1; }
+
+    .tb-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 0 14px; height: 32px; border-radius: 9px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      font-family: var(--font); border: none; transition: opacity 0.12s;
+    }
+    .tb-btn:hover { opacity: 0.82; }
+    .tb-btn-primary { background: var(--brand); color: white; box-shadow: 0 1px 5px rgba(0,102,204,0.22); }
+    .tb-btn-ghost   { background: var(--fill); color: var(--text-1); border: 1px solid var(--sep); }
+
+    /* ─── Workspace ─── */
+    .workspace { flex: 1; display: flex; overflow: hidden; min-height: 0; }
+
+    /* ── LEFT SIDEBAR ── */
+    .sl {
+      width: 220px; flex-shrink: 0; background: var(--surface);
+      border-right: 1px solid var(--sep); display: flex; flex-direction: column; overflow: hidden;
+    }
+    .sl-sec {
+      padding: 14px 14px 10px; border-bottom: 1px solid var(--sep); flex-shrink: 0;
+    }
+    .sl-sec-title {
+      font-size: 11px; font-weight: 600; color: var(--text-3);
+      letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 10px;
+    }
+    .cat-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 10px; border-radius: 9px; cursor: pointer;
+      transition: background 0.12s; margin-bottom: 1px;
+    }
+    .cat-row:hover { background: var(--fill); }
+    .cat-row.active { background: var(--brand-light); }
+    .cat-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .cat-label { font-size: 13.5px; flex: 1; }
+    .cat-row.active .cat-label { font-weight: 600; color: var(--brand); }
+    .cat-count {
+      font-size: 11.5px; font-weight: 600; color: var(--text-3);
+      background: var(--fill); padding: 1px 7px; border-radius: 10px;
+    }
+    .cat-row.active .cat-count { background: rgba(0,102,204,0.12); color: var(--brand); }
+
+    .sl-bottom {
+      padding: 12px 14px; flex-shrink: 0; border-top: 1px solid var(--sep);
+    }
+    .sl-stat { font-size: 12px; color: var(--text-3); margin-bottom: 5px; display: flex; justify-content: space-between; }
+    .sl-stat-val { font-weight: 600; color: var(--text-2); }
+
+    /* ── MAIN ── */
+    .main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* Stats bar */
+    .stats-bar {
+      background: var(--surface); border-bottom: 1px solid var(--sep);
+      padding: 0 24px; display: flex; align-items: stretch; flex-shrink: 0; height: 64px;
+    }
+    .stat { display: flex; flex-direction: column; justify-content: center; padding: 0 20px; border-right: 1px solid var(--sep); }
+    .stat:first-child { padding-left: 0; }
+    .stat:last-child { border-right: none; }
+    .stat-n { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+    .stat-n.blue { color: var(--brand); }
+    .stat-n.teal { color: var(--teal); }
+    .stat-n.purple { color: var(--purple); }
+    .stat-n.green { color: var(--success); }
+    .stat-l { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+    .stat-spacer { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+
+    /* Content area */
+    .content { flex: 1; overflow-y: auto; padding: 20px 24px; min-height: 0; }
+    .content::-webkit-scrollbar { width: 5px; }
+    .content::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 3px; }
+
+    /* Search + filter row */
+    .action-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+    .search-wrap {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--surface); border: 1.5px solid var(--sep);
+      border-radius: 10px; padding: 0 12px; height: 36px; width: 280px;
+      transition: border-color 0.15s;
+    }
+    .search-wrap:focus-within { border-color: var(--brand); }
+    .search-inp {
+      flex: 1; border: none; background: transparent; font-size: 13.5px;
+      font-family: var(--font); color: var(--text-1); outline: none;
+    }
+    .search-inp::placeholder { color: var(--text-3); }
+    .ar-spacer { flex: 1; }
+    .sort-sel {
+      padding: 0 12px; height: 34px; border: 1px solid var(--sep);
+      border-radius: 8px; font-size: 13px; background: var(--surface);
+      color: var(--text-2); cursor: pointer; font-family: var(--font); outline: none;
+    }
+
+    /* Processing banner */
+    .proc-banner {
+      background: var(--surface); border: 1.5px solid rgba(0,102,204,0.2);
+      border-radius: 13px; margin-bottom: 16px; overflow: hidden;
+    }
+    .proc-header {
+      display: flex; align-items: center; gap: 10px; padding: 12px 16px;
+      border-bottom: 1px solid var(--sep);
+    }
+    .proc-spin {
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 2.5px solid rgba(0,102,204,0.2); border-top-color: var(--brand);
+      animation: spin 0.9s linear infinite; flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .proc-filename { font-size: 14px; font-weight: 600; flex: 1; }
+    .proc-size { font-size: 12px; color: var(--text-3); }
+    .proc-pct { font-size: 13px; font-weight: 600; color: var(--brand); }
+
+    /* Pipeline steps */
+    .pipeline-steps { display: grid; grid-template-columns: repeat(4,1fr); gap: 0; }
+    .ps {
+      padding: 12px 16px; border-right: 1px solid var(--sep); position: relative;
+    }
+    .ps:last-child { border-right: none; }
+    .ps-num {
+      font-size: 10.5px; font-weight: 600; color: var(--text-3);
+      letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 5px;
+    }
+    .ps-name { font-size: 13px; font-weight: 600; color: var(--text-1); margin-bottom: 4px; }
+    .ps-desc { font-size: 11.5px; color: var(--text-2); line-height: 1.45; margin-bottom: 8px; }
+    .ps-status {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11.5px; font-weight: 500; padding: 3px 8px; border-radius: 6px;
+    }
+    .ps-status.done    { background: rgba(40,205,65,0.1);  color: #1A7030; }
+    .ps-status.running { background: rgba(0,102,204,0.1);  color: var(--brand); }
+    .ps-status.wait    { background: var(--fill);           color: var(--text-3); }
+    .ps-status-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+    /* Document table */
+    .doc-table { background: var(--surface); border: 1px solid var(--sep); border-radius: 13px; overflow: hidden; }
+    .dt-head {
+      display: grid; grid-template-columns: 2fr 100px 80px 70px 110px 140px 120px;
+      padding: 0 16px; height: 38px; background: var(--fill-2);
+      border-bottom: 1px solid var(--sep); align-items: center; gap: 12px;
+    }
+    .dt-th { font-size: 11.5px; font-weight: 600; color: var(--text-3); letter-spacing: 0.03em; text-transform: uppercase; white-space: nowrap; }
+
+    .dt-row {
+      display: grid; grid-template-columns: 2fr 100px 80px 70px 110px 140px 120px;
+      padding: 0 16px; min-height: 52px; border-bottom: 1px solid var(--sep);
+      align-items: center; gap: 12px; cursor: pointer; transition: background 0.12s;
+    }
+    .dt-row:hover { background: var(--fill-2); }
+    .dt-row:last-child { border-bottom: none; }
+
+    .dt-name { display: flex; align-items: center; gap: 9px; min-width: 0; }
+    .md-icon {
+      width: 30px; height: 30px; border-radius: 7px;
+      background: rgba(0,102,204,0.08); display: flex; align-items: center;
+      justify-content: center; flex-shrink: 0; font-size: 10px;
+      font-weight: 800; color: var(--brand); font-family: var(--mono);
+    }
+    .dt-fname {
+      font-size: 13.5px; font-weight: 500; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    .dt-fname .error-hint { font-size: 11.5px; color: var(--danger); font-weight: 400; margin-left: 6px; }
+
+    .cat-tag {
+      font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 5px;
+      white-space: nowrap;
+    }
+    .ct-model   { background: rgba(0,102,204,0.09); color: var(--brand); }
+    .ct-price   { background: rgba(50,173,230,0.10); color: #1A7A9E; }
+    .ct-maint   { background: rgba(40,205,65,0.10);  color: #1A7030; }
+    .ct-repair  { background: rgba(255,149,0,0.10);  color: #A06000; }
+    .ct-policy  { background: rgba(94,92,230,0.10);  color: var(--purple); }
+
+    .dt-num { font-size: 13.5px; color: var(--text-1); font-variant-numeric: tabular-nums; }
+    .dt-num.dim { color: var(--text-3); }
+
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11.5px; font-weight: 600; padding: 3px 8px; border-radius: 6px;
+    }
+    .sb-ok      { background: rgba(40,205,65,0.10);  color: #1A7030; }
+    .sb-proc    { background: rgba(0,102,204,0.10);  color: var(--brand); }
+    .sb-fail    { background: rgba(255,59,48,0.10);  color: #C0241B; }
+    .sb-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+    .dt-time { font-size: 12.5px; color: var(--text-2); }
+
+    .dt-actions { display: flex; gap: 5px; }
+    .act-btn {
+      padding: 0 10px; height: 26px; border-radius: 6px;
+      font-size: 12px; font-weight: 500; cursor: pointer;
+      font-family: var(--font); border: none; transition: background 0.12s;
+    }
+    .act-view   { background: var(--fill); color: var(--text-2); }
+    .act-view:hover { background: var(--brand-light); color: var(--brand); }
+    .act-del    { background: rgba(255,59,48,0.07); color: #C0241B; }
+    .act-del:hover { background: rgba(255,59,48,0.14); }
+    .act-retry  { background: rgba(255,149,0,0.09); color: #A06000; }
+    .act-retry:hover { background: rgba(255,149,0,0.16); }
+
+    /* Upload drop zone (bottom) */
+    .upload-zone {
+      border: 2px dashed var(--sep); border-radius: 13px;
+      padding: 28px; text-align: center; margin-top: 16px;
+      transition: border-color 0.15s, background 0.15s; cursor: pointer;
+      background: var(--surface);
+    }
+    .upload-zone:hover { border-color: var(--brand); background: var(--brand-light); }
+    .upload-icon { margin: 0 auto 10px; width: 40px; height: 40px; opacity: 0.4; }
+    .upload-title { font-size: 14px; font-weight: 600; color: var(--text-2); margin-bottom: 4px; }
+    .upload-sub { font-size: 12.5px; color: var(--text-3); }
+    .upload-sub strong { color: var(--brand); }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- Toolbar -->
+  <header class="toolbar">
+    <div class="tb-brand">
+      <div class="tb-logo">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M2.5 3.5 H13.5 L2.5 12.5 H13.5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="tb-title">智能汽车客服</span>
+    </div>
+    <div class="tb-div"></div>
+    <nav class="tb-nav">
+      <span class="tb-link">管理端</span>
+      <span class="tb-sep-c">›</span>
+      <span class="tb-cur">知识库管理</span>
+    </nav>
+    <div class="tb-spacer"></div>
+    <button class="tb-btn tb-btn-ghost" id="searchBtn" style="margin-right:8px">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+        <circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.4"/>
+        <path d="M8.5 8.5L11 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      搜索文档
+    </button>
+    <button class="tb-btn tb-btn-primary" id="uploadBtn">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+        <path d="M6.5 1v9M2.5 10.5h8M6.5 1L4 4M6.5 1L9 4" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      上传文档
+    </button>
+    <input type="file" id="fileInput" accept=".md" multiple style="display:none">
+  </header>
+
+  <div class="workspace">
+
+    <!-- Left sidebar -->
+    <aside class="sl">
+      <div class="sl-sec">
+        <div class="sl-sec-title">文档分类</div>
+
+        <div class="cat-row active" data-cat="全部">
+          <div class="cat-dot" style="background:#0066CC"></div>
+          <span class="cat-label">全部文档</span>
+          <span class="cat-count">14</span>
+        </div>
+        <div class="cat-row" data-cat="车型">
+          <div class="cat-dot" style="background:#0066CC"></div>
+          <span class="cat-label">车型</span>
+          <span class="cat-count">4</span>
+        </div>
+        <div class="cat-row" data-cat="价格">
+          <div class="cat-dot" style="background:#32ADE6"></div>
+          <span class="cat-label">价格</span>
+          <span class="cat-count">2</span>
+        </div>
+        <div class="cat-row" data-cat="保养">
+          <div class="cat-dot" style="background:#28CD41"></div>
+          <span class="cat-label">保养</span>
+          <span class="cat-count">4</span>
+        </div>
+        <div class="cat-row" data-cat="维修">
+          <div class="cat-dot" style="background:#FF9500"></div>
+          <span class="cat-label">维修</span>
+          <span class="cat-count">3</span>
+        </div>
+        <div class="cat-row" data-cat="政策">
+          <div class="cat-dot" style="background:#5E5CE6"></div>
+          <span class="cat-label">政策</span>
+          <span class="cat-count">1</span>
+        </div>
+      </div>
+
+      <div style="flex:1"></div>
+
+      <div class="sl-bottom">
+        <div class="sl-stat">向量片段总数 <span class="sl-stat-val">2,847</span></div>
+        <div class="sl-stat">QA 条目总数 <span class="sl-stat-val">523</span></div>
+        <div class="sl-stat">向量库大小 <span class="sl-stat-val">48 MB</span></div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+
+      <!-- Stats bar -->
+      <div class="stats-bar">
+        <div class="stat">
+          <div class="stat-n blue">14</div>
+          <div class="stat-l">文档总数</div>
+        </div>
+        <div class="stat">
+          <div class="stat-n teal">2,847</div>
+          <div class="stat-l">向量片段</div>
+        </div>
+        <div class="stat">
+          <div class="stat-n purple">523</div>
+          <div class="stat-l">QA 条目</div>
+        </div>
+        <div class="stat">
+          <div class="stat-n green">12</div>
+          <div class="stat-l">已入库</div>
+        </div>
+        <div class="stat-spacer">
+          <span style="font-size:12px;color:var(--text-3)">最近更新：2 分钟前</span>
+        </div>
+      </div>
+
+      <div class="content">
+
+        <!-- Action row -->
+        <div class="action-row">
+          <div class="search-wrap">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <circle cx="6" cy="6" r="4.5" stroke="#8E8E93" stroke-width="1.4"/>
+              <path d="M9.5 9.5L12 12" stroke="#8E8E93" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <input class="search-inp" placeholder="搜索文档名称…" type="text">
+          </div>
+          <div class="ar-spacer"></div>
+          <select class="sort-sel" id="sortSel">
+            <option value="time">按上传时间排序</option>
+            <option value="name">按文档名称排序</option>
+            <option value="cat">按分类排序</option>
+          </select>
+        </div>
+
+        <!-- Processing banner (in-progress upload) -->
+        <div class="proc-banner">
+          <div class="proc-header">
+            <div class="proc-spin"></div>
+            <span class="proc-filename">新能源车充电桩安装指南.md</span>
+            <span class="proc-size">68 KB · 刚刚上传</span>
+            <span class="proc-pct">处理中 75%</span>
+          </div>
+          <div class="pipeline-steps">
+
+            <div class="ps">
+              <div class="ps-num">步骤 1</div>
+              <div class="ps-name">文档切片</div>
+              <div class="ps-desc">按段落分块，chunk_size=500，overlap=50</div>
+              <span class="ps-status done"><div class="ps-status-dot"></div>已完成 · 42 片段</span>
+            </div>
+
+            <div class="ps">
+              <div class="ps-num">步骤 2</div>
+              <div class="ps-name">向量化入库</div>
+              <div class="ps-desc">Embedding 模型编码，写入向量库（SQLite）</div>
+              <span class="ps-status running">
+                <div style="width:8px;height:8px;border-radius:50%;border:1.5px solid rgba(0,102,204,0.3);border-top-color:var(--brand);animation:spin 0.9s linear infinite;flex-shrink:0;"></div>
+                进行中 · 31/42
+              </span>
+            </div>
+
+            <div class="ps">
+              <div class="ps-num">步骤 3</div>
+              <div class="ps-name">元数据提取</div>
+              <div class="ps-desc">提取标题、关键词，写入元数据库（SQLite）</div>
+              <span class="ps-status wait"><div class="ps-status-dot"></div>等待中</span>
+            </div>
+
+            <div class="ps">
+              <div class="ps-num">步骤 4</div>
+              <div class="ps-name">QA 自动提取</div>
+              <div class="ps-desc">LLM 自动生成 QA 对，写入 QA 库（SQLite）</div>
+              <span class="ps-status wait"><div class="ps-status-dot"></div>等待中</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Document table -->
+        <div class="doc-table">
+          <div class="dt-head">
+            <div class="dt-th">文档名称</div>
+            <div class="dt-th">分类</div>
+            <div class="dt-th">向量片段</div>
+            <div class="dt-th">QA条目</div>
+            <div class="dt-th">状态</div>
+            <div class="dt-th">上传时间</div>
+            <div class="dt-th">操作</div>
+          </div>
+
+          <!-- Row 1 -->
+          <div class="dt-row" data-cat="车型" data-name="极氪 001 技术规格手册.md" data-time="2">
+            <div class="dt-name">
+              <div class="md-icon">MD</div>
+              <span class="dt-fname">极氪 001 技术规格手册.md</span>
+            </div>
+            <span class="cat-tag ct-model">车型</span>
+            <span class="dt-num">234</span>
+            <span class="dt-num">45</span>
+            <span class="status-badge sb-ok"><div class="sb-dot"></div>已入库</span>
+            <span class="dt-time">2小时前</span>
+            <div class="dt-actions">
+              <button class="act-btn act-view">查看</button>
+              <button class="act-btn act-del">删除</button>
+            </div>
+          </div>
+
+          <!-- Row 2 -->
+          <div class="dt-row" data-cat="车型" data-name="极氪 007 用户使用指南.md" data-time="3">
+            <div class="dt-name">
+              <div class="md-icon">MD</div>
+              <span class="dt-fname">极氪 007 用户使用指南.md</span>
+            </div>
+            <span class="cat-tag ct-model">车型</span>
+            <span class="dt-num">189</span>
+            <span class="dt-num">38</span>
+            <span class="status-badge sb-ok"><div class="sb-dot"></div>已入库</span>
+            <span class="dt-time">3小时前</span>
+            <div class="dt-actions">
+              <button class="act-btn act-view">查看</button>
+              <button class="act-btn act-del">删除</button>
+            </div>
+          </div>
+
+          <!-- Row 3 -->
+          <div class="dt-row" data-cat="车型" data-name="极氪 Mix 产品介绍与参数.md" data-time="24">
+            <div class="dt-name">
+              <div class="md-icon">MD</div>
+              <span class="dt-fname">极氪 Mix 产品介绍与参数.md</span>
+            </div>
+            <span class="cat-tag ct-model">车型</span>
+            <span class="dt-num">156</span>
+            <span class="dt-num">29</span>
+            <span class="status-badge sb-ok"><div class="sb-dot"></div>已入库</span>
+            <span class="dt-time">昨天</span>
+            <div class="dt-actions">
+              <button class="act-btn act-view">查看</button>
+              <button class="act-btn act-del">删除</button>
+            </div>
+          </div>
+
+          <!-- Row 4 -->
+          <div class="dt-row" data-cat="车型" data-name="全系车型配置对比表.md" data-time="25">
+            <div class="dt-name">
+              <div class="md-icon">MD</div>
+              <span class="dt-fname">全系车型配置对比表.md</span>
+            </div>
+            <span class="cat-tag ct-model">车型</span>
+            <span class="dt-num">98</span>
+            <span class="dt-num">21</span>
+            <span class="status-badge sb-ok"><div class="sb-dot"></div>已入库</span>
+            <span class="dt-time">昨天</span>
+            <div class="dt-actions">
+              <button class="act-btn act-view">查看</button>
+              <button class="act-btn act-del">删除</button>
+            </div>
+          </div>
+
+          <!-- Row 5 -->
+          <div class="dt-row" data-cat="保养" data-name="极氪全系保养周期与费用.md" data-time="72">
+            <div class="dt-name">
+              <div class="md-icon">MD</div>
+              <span class="dt-fname">极氪全系保养周期与费用.md</span>
+            </div>
+            <span class="cat-tag ct-maint">保养</span>
+            <span class="dt-num">67</span>
+            <span class="dt-num">22</span>
+            <span class="status-badge sb-ok"><div class="sb-dot"></div>已入库</span>
+            <span class="dt-time">3天前</span>
+            <div class="dt-actions">
+              <button class="act-btn act-view">查看</button>
+              <button class="act-btn act-del">删除</button>
+            </div>
+          </div>
+
+          <!-- Row 6: processing -->
+          <div class="dt-row" data-cat="保养" data-name="新能源车充电桩安装指南.md" data-time="0">
+            <div class="dt-name">
+              <div class="md-icon" style="background:rgba(0,102,204,0.05)">MD</div>
+              <span class="dt-fname">新能源车充电桩安装指南.md</span>
+            </div>
+            <span class="cat-tag ct-maint">保养</span>
+            <span class="dt-num dim">—</span>
+            <span class="dt-num dim">—</span>
+            <span class="status-badge sb-proc">
+              <div style="width:8px;height:8px;border-radius:50%;border:1.5px solid rgba(0,102,204,0.3);border-top-color:var(--brand);animation:spin 0.9s linear infinite;flex-shrink:0;"></div>
+              处理中
+            </span>
+            <span class="dt-time">刚刚</span>
+            <div class="dt-actions">
+              <button class="act-btn act-view" style="opacity:0.4;cursor:default">查看</button>
+            </div>
+          </div>
+
+          <!-- Row 7 -->
+          <div class="dt-row" data-cat="维修" data-name="常见故障排查与处理手册.md" data-time="73">
+            <div class="dt-name">
+              <div class="md-icon">MD</div>
+              <span class="dt-fname">常见故障排查与处理手册.md</span>
+            </div>
+            <span class="cat-tag ct-repair">维修</span>
+            <span class="dt-num">312</span>
+            <span class="dt-num">89</span>
+            <span class="status-badge sb-ok"><div class="sb-dot"></div>已入库</span>
+            <span class="dt-time">3天前</span>
+            <div class="dt-actions">
+              <button class="act-btn act-view">查看</button>
+              <button class="act-btn act-del">删除</button>
+            </div>
+          </div>
+
+          <!-- Row 8: failed -->
+          <div class="dt-row" data-cat="政策" data-name="售后服务价格政策 2024.md" data-time="120">
+            <div class="dt-name">
+              <div class="md-icon" style="background:rgba(255,59,48,0.07);color:#C0241B">MD</div>
+              <span class="dt-fname">售后服务价格政策 2024.md<span class="error-hint">· 格式错误</span></span>
+            </div>
+            <span class="cat-tag ct-policy">政策</span>
+            <span class="dt-num dim">—</span>
+            <span class="dt-num dim">—</span>
+            <span class="status-badge sb-fail"><div class="sb-dot"></div>处理失败</span>
+            <span class="dt-time">5天前</span>
+            <div class="dt-actions">
+              <button class="act-btn act-retry">重试</button>
+              <button class="act-btn act-del">删除</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Upload drop zone -->
+        <div class="upload-zone">
+          <div class="upload-icon">
+            <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 28V12M20 12L14 18M20 12L26 18" stroke="#8E8E93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M8 30h24" stroke="#8E8E93" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="upload-title">拖拽 Markdown 文件至此，或点击上传</div>
+          <div class="upload-sub">仅支持 <strong>.md 格式</strong>，单文件最大 10MB · 上传后自动触发向量化和 QA 提取</div>
+        </div>
+
+      </div>
+    </main>
+
+  </div>
+</div>
+<style>
+  /* ── 搜索弹窗 ── */
+  .search-modal-backdrop {
+    position: fixed; inset: 0; z-index: 300;
+    background: rgba(0,0,0,0.28); backdrop-filter: blur(3px);
+    display: none; align-items: flex-start; justify-content: center;
+    padding-top: 100px;
+  }
+  .search-modal-backdrop.show { display: flex; }
+  .search-modal {
+    width: 580px; background: var(--surface);
+    border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.22);
+    overflow: hidden;
+  }
+  .sm-input-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 18px; border-bottom: 1px solid var(--sep);
+  }
+  .sm-inp {
+    flex: 1; border: none; background: transparent;
+    font-size: 15px; font-family: var(--font); color: var(--text-1); outline: none;
+  }
+  .sm-inp::placeholder { color: var(--text-3); }
+  .sm-kbd {
+    font-size: 11px; color: var(--text-3); background: var(--fill);
+    border: 1px solid var(--sep); border-radius: 5px;
+    padding: 2px 6px; flex-shrink: 0;
+  }
+  .sm-results { max-height: 360px; overflow-y: auto; }
+  .sm-results::-webkit-scrollbar { width: 4px; }
+  .sm-results::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px; }
+  .sm-empty {
+    padding: 32px; text-align: center;
+    color: var(--text-3); font-size: 13.5px;
+  }
+  .sm-result {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 18px; cursor: pointer; transition: background 0.1s;
+  }
+  .sm-result:hover, .sm-result.focused { background: var(--brand-light); }
+  .sm-result-icon {
+    width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+    background: rgba(0,102,204,0.08);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 800; color: var(--brand); font-family: var(--mono);
+  }
+  .sm-result-info { flex: 1; min-width: 0; }
+  .sm-result-name {
+    font-size: 13.5px; font-weight: 500; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px;
+  }
+  .sm-result-name mark { background: rgba(0,102,204,0.15); color: var(--brand); border-radius: 2px; font-style: normal; }
+  .sm-result-meta { font-size: 11.5px; color: var(--text-3); }
+  .sm-result-badge {
+    font-size: 11px; font-weight: 600; padding: 2px 8px;
+    border-radius: 5px; flex-shrink: 0;
+  }
+  .sm-hint {
+    padding: 8px 18px; border-top: 1px solid var(--sep);
+    font-size: 11.5px; color: var(--text-3);
+    display: flex; gap: 14px;
+  }
+  .sm-hint kbd {
+    background: var(--fill); border: 1px solid var(--sep);
+    border-radius: 4px; padding: 1px 5px; font-size: 10.5px;
+    font-family: var(--mono); margin-right: 3px;
+  }
+
+  /* Toast 通知 */
+  .toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(12px);
+    background: rgba(28,28,30,0.92); color: white; backdrop-filter: blur(12px);
+    padding: 10px 20px; border-radius: 10px; font-size: 13.5px; font-weight: 500;
+    opacity: 0; transition: opacity 0.2s, transform 0.2s; pointer-events: none;
+    white-space: nowrap; z-index: 999;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+
+<!-- 搜索弹窗 -->
+<div class="search-modal-backdrop" id="searchBackdrop">
+  <div class="search-modal">
+    <div class="sm-input-row">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;opacity:0.45">
+        <circle cx="7" cy="7" r="5" stroke="#1C1C1E" stroke-width="1.6"/>
+        <path d="M11 11L14 14" stroke="#1C1C1E" stroke-width="1.7" stroke-linecap="round"/>
+      </svg>
+      <input class="sm-inp" id="smInp" placeholder="搜索文档名称…" autocomplete="off">
+      <span class="sm-kbd">ESC 关闭</span>
+    </div>
+    <div class="sm-results" id="smResults"></div>
+    <div class="sm-hint">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 导航</span>
+      <span><kbd>↵</kbd> 跳转</span>
+      <span><kbd>ESC</kbd> 关闭</span>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  'use strict';
+
+  // ── 搜索弹窗 ──
+  const searchBackdrop = document.getElementById('searchBackdrop');
+  const smInp          = document.getElementById('smInp');
+  const smResults      = document.getElementById('smResults');
+
+  // 从 dt-row 收集数据（含分类 badge 颜色）
+  const CAT_CLASS = { 车型:'ct-model', 价格:'ct-price', 保养:'ct-maint', 维修:'ct-repair', 政策:'ct-policy' };
+
+  function getDocData() {
+    return [...document.querySelectorAll('.dt-row')].map(r => ({
+      name: r.dataset.name,
+      cat:  r.dataset.cat,
+      el:   r,
+      status: r.querySelector('.status-badge') ? r.querySelector('.status-badge').textContent.trim() : ''
+    }));
+  }
+
+  function openSearch() {
+    searchBackdrop.classList.add('show');
+    smInp.value = '';
+    renderSmResults('');
+    setTimeout(() => smInp.focus(), 30);
+  }
+  function closeSearch() {
+    searchBackdrop.classList.remove('show');
+  }
+
+  let smFocusIdx = -1;
+
+  function renderSmResults(q) {
+    smFocusIdx = -1;
+    const docs = getDocData();
+    const matched = q
+      ? docs.filter(d => d.name.toLowerCase().includes(q.toLowerCase()))
+      : docs;
+
+    if (matched.length === 0) {
+      smResults.innerHTML = `<div class="sm-empty">未找到包含「${q}」的文档</div>`;
+      return;
+    }
+
+    smResults.innerHTML = matched.map((d, i) => {
+      const highlighted = q
+        ? d.name.replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi'), '<mark>$1</mark>')
+        : d.name;
+      const catCls = CAT_CLASS[d.cat] || '';
+      return `<div class="sm-result" data-idx="${i}" data-name="${d.name}">
+        <div class="sm-result-icon">MD</div>
+        <div class="sm-result-info">
+          <div class="sm-result-name">${highlighted}</div>
+          <div class="sm-result-meta">${d.status}</div>
+        </div>
+        <span class="sm-result-badge cat-tag ${catCls}">${d.cat}</span>
+      </div>`;
+    }).join('');
+
+    // 点击结果：关闭弹窗 + 高亮对应行
+    smResults.querySelectorAll('.sm-result').forEach((el, i) => {
+      el.addEventListener('click', () => jumpToDoc(matched[i]));
+    });
+  }
+
+  function jumpToDoc(doc) {
+    closeSearch();
+    doc.el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    doc.el.style.transition = 'background 0.15s';
+    doc.el.style.background = 'rgba(0,102,204,0.07)';
+    setTimeout(() => { doc.el.style.background = ''; }, 1400);
+  }
+
+  function moveFocus(dir) {
+    const items = [...smResults.querySelectorAll('.sm-result')];
+    if (items.length === 0) return;
+    items.forEach(el => el.classList.remove('focused'));
+    smFocusIdx = Math.max(0, Math.min(items.length - 1, smFocusIdx + dir));
+    items[smFocusIdx].classList.add('focused');
+    items[smFocusIdx].scrollIntoView({ block: 'nearest' });
+  }
+
+  smInp.addEventListener('input', () => renderSmResults(smInp.value.trim()));
+  smInp.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); moveFocus(1); }
+    if (e.key === 'ArrowUp')   { e.preventDefault(); moveFocus(-1); }
+    if (e.key === 'Enter') {
+      const focused = smResults.querySelector('.sm-result.focused');
+      if (focused) focused.click();
+    }
+    if (e.key === 'Escape') closeSearch();
+  });
+
+  document.getElementById('searchBtn').addEventListener('click', openSearch);
+  searchBackdrop.addEventListener('click', e => { if (e.target === searchBackdrop) closeSearch(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && searchBackdrop.classList.contains('show')) closeSearch(); });
+
+  // ── Toast ──
+  let _toastTimer;
+  function showToast(msg, duration = 2200) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(() => t.classList.remove('show'), duration);
+  }
+
+  // ── 状态 ──
+  let currentCat  = '全部';
+  let currentSort = 'time';
+  let currentSearch = '';
+
+  const docTable = document.querySelector('.doc-table');
+
+  // ── 筛选 + 排序 + 搜索 联动 ──
+  function refresh() {
+    const rows = [...docTable.querySelectorAll('.dt-row')];
+
+    // 先排序（在 DOM 里重新插入）
+    rows.sort((a, b) => {
+      if (currentSort === 'time') return parseInt(a.dataset.time) - parseInt(b.dataset.time);
+      if (currentSort === 'name') return a.dataset.name.localeCompare(b.dataset.name, 'zh-CN');
+      if (currentSort === 'cat')  return a.dataset.cat.localeCompare(b.dataset.cat, 'zh-CN');
+      return 0;
+    });
+    rows.forEach(r => docTable.appendChild(r));
+
+    // 再过滤可见性
+    let visible = 0;
+    rows.forEach(r => {
+      const catMatch  = currentCat === '全部' || r.dataset.cat === currentCat;
+      const nameMatch = r.dataset.name.toLowerCase().includes(currentSearch.toLowerCase());
+      const show = catMatch && nameMatch;
+      r.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+
+    // 更新空状态提示
+    let emptyEl = docTable.querySelector('.dt-empty');
+    if (visible === 0) {
+      if (!emptyEl) {
+        emptyEl = document.createElement('div');
+        emptyEl.className = 'dt-empty';
+        emptyEl.style.cssText = 'padding:32px;text-align:center;color:var(--text-3);font-size:13px;';
+        docTable.appendChild(emptyEl);
+      }
+      emptyEl.textContent = currentSearch ? `未找到包含「${currentSearch}」的文档` : `该分类暂无文档`;
+      emptyEl.style.display = '';
+    } else if (emptyEl) {
+      emptyEl.style.display = 'none';
+    }
+  }
+
+  // ── 左侧分类点击 ──
+  document.querySelectorAll('.cat-row[data-cat]').forEach(row => {
+    row.addEventListener('click', () => {
+      document.querySelectorAll('.cat-row').forEach(r => r.classList.remove('active'));
+      row.classList.add('active');
+      currentCat = row.dataset.cat;
+      refresh();
+    });
+  });
+
+  // ── 排序下拉 ──
+  document.getElementById('sortSel').addEventListener('change', function() {
+    currentSort = this.value;
+    refresh();
+  });
+
+  // ── 搜索框 ──
+  document.querySelector('.search-inp').addEventListener('input', function() {
+    currentSearch = this.value.trim();
+    refresh();
+  });
+
+  // ── 行内操作按钮 ──
+  docTable.addEventListener('click', e => {
+    const btn = e.target.closest('.act-btn');
+    if (!btn) return;
+    e.stopPropagation();
+    const row = btn.closest('.dt-row');
+
+    if (btn.classList.contains('act-view')) {
+      const name = row.dataset.name;
+      showToast(`正在打开文档预览：${name}`);
+    }
+
+    if (btn.classList.contains('act-del')) {
+      const name = row.dataset.name;
+      if (window.confirm(`确认删除「${name}」？\n删除后向量片段和 QA 条目将一并移除，不可恢复。`)) {
+        row.style.transition = 'opacity 0.2s';
+        row.style.opacity = '0';
+        setTimeout(() => { row.remove(); showToast(`已删除 ${name}`); }, 200);
+      }
+    }
+
+    if (btn.classList.contains('act-retry')) {
+      const name = row.dataset.name;
+      // 改成处理中状态
+      const statusEl = row.querySelector('.status-badge');
+      if (statusEl) {
+        statusEl.className = 'status-badge sb-proc';
+        statusEl.innerHTML = `<div style="width:8px;height:8px;border-radius:50%;border:1.5px solid rgba(0,102,204,0.3);border-top-color:var(--brand);animation:spin 0.9s linear infinite;flex-shrink:0;"></div> 处理中`;
+      }
+      btn.disabled = true; btn.style.opacity = '0.4';
+      showToast(`已重新提交处理：${name}`);
+    }
+  });
+
+  // ── 上传按钮 & 拖拽区域 → 触发 file picker ──
+  const fileInput  = document.getElementById('fileInput');
+  const uploadZone = document.querySelector('.upload-zone');
+
+  document.getElementById('uploadBtn').addEventListener('click', () => fileInput.click());
+  uploadZone.addEventListener('click', () => fileInput.click());
+
+  fileInput.addEventListener('change', function() {
+    const files = [...this.files];
+    if (files.length === 0) return;
+    const names = files.map(f => f.name).join('、');
+    showToast(`已选择 ${files.length} 个文件：${names}，即将开始处理…`, 3000);
+    this.value = '';
+  });
+
+  // 拖拽高亮
+  uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.style.borderColor = 'var(--brand)'; uploadZone.style.background = 'var(--brand-light)'; });
+  uploadZone.addEventListener('dragleave', () => { uploadZone.style.borderColor = ''; uploadZone.style.background = ''; });
+  uploadZone.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadZone.style.borderColor = ''; uploadZone.style.background = '';
+    const files = [...e.dataTransfer.files].filter(f => f.name.endsWith('.md'));
+    if (files.length === 0) { showToast('仅支持 .md 格式文件'); return; }
+    showToast(`已拖入 ${files.length} 个文件，即将开始处理…`, 3000);
+  });
+
+  // 初始排序
+  refresh();
+</script>
+</body>
+</html>

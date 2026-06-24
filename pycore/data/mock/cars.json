@@ -1,0 +1,26 @@
+[
+  {
+    "model": "极氪 001",
+    "price_from": 269000,
+    "range_km": 870,
+    "type": "SUV",
+    "highlights": ["800V 超快充", "26 分钟 10-80%", "零百加速 3.8 秒"],
+    "description": "极氪旗舰猎装 SUV，搭载 100 度大电池，CLTC 续航 870km。"
+  },
+  {
+    "model": "极氪 007",
+    "price_from": 209900,
+    "range_km": 688,
+    "type": "轿车",
+    "highlights": ["大空间", "智能驾驶", "零百 2.84 秒"],
+    "description": "极氪中型纯电轿车，800V 高压平台，后驱版起售 20.99 万。"
+  },
+  {
+    "model": "极氪 Mix",
+    "price_from": 249900,
+    "range_km": 620,
+    "type": "MPV",
+    "highlights": ["家用", "第二排可全平", "五门无 B 柱"],
+    "description": "极氪家用 MPV，后排座椅支持零重力模式，横向宽约 1.45m 可平躺。"
+  }
+]

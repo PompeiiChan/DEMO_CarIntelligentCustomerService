@@ -1,0 +1,67 @@
+.wrapper {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+  align-items: flex-end;
+}
+
+.av {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.avBot {
+  background: linear-gradient(140deg, #0077E6 0%, #0055BB 100%);
+  box-shadow: 0 1px 4px rgba(0, 102, 204, 0.22);
+}
+
+.avAgent {
+  background: linear-gradient(140deg, #6B69F0 0%, #4E4CD9 100%);
+  color: white;
+  box-shadow: 0 1px 4px rgba(94, 92, 230, 0.22);
+}
+
+.typingBub {
+  background: #ffffff;
+  border-radius: 4px 18px 18px 18px;
+  padding: 13px 16px;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
+  width: 60px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #8E8E93;
+  animation: bounce 1.3s infinite ease-in-out;
+}
+
+.dot:nth-child(2) {
+  animation-delay: 0.18s;
+}
+
+.dot:nth-child(3) {
+  animation-delay: 0.36s;
+}
+
+@keyframes bounce {
+  0%, 55%, 100% {
+    transform: translateY(0);
+    opacity: 0.35;
+  }
+  27% {
+    transform: translateY(-5px);
+    opacity: 1;
+  }
+}

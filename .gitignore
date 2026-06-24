@@ -5,8 +5,15 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .mypy_cache/
+.ruff_cache/
+.venv/
 node_modules/
 dist/
 build/
 .DS_Store
 logs/
+/data/
+pycore.egg-info/
+.sdd/
+.playwright-mcp/
+AGENTS.md
