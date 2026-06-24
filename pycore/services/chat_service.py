@@ -40,6 +40,15 @@ _session_maker = async_sessionmaker(_engine, class_=AsyncSession, expire_on_comm
 # 直接触发转人工的关键词（无需 LLM）
 TRANSFER_KEYWORDS = ["转人工", "找人工", "要人工", "转接人工", "要真人", "找真人"]
 
+# 高风险售后场景直接触发转人工（无需 LLM）
+CRITICAL_SERVICE_KEYWORDS = [
+    "抛锚", "无法启动", "启动不了", "打不着车", "趴窝",
+    "充不了电", "充不进电", "充电故障", "无法充电",
+    "刹车失灵", "刹车故障", "方向失控", "失控",
+    "事故", "碰撞", "撞车", "爆胎", "冒烟", "起火", "漏电",
+    "救援", "拖车", "红色报警", "紧急",
+]
+
 # 路由分类
 ROUTES = ["售前", "售中", "售后"]
 
@@ -222,6 +231,13 @@ async def process_message(
                 need_human = True
                 transfer_reason = "用户要求"
                 break
+
+        if not need_human:
+            for kw in CRITICAL_SERVICE_KEYWORDS:
+                if kw in user_msg:
+                    need_human = True
+                    transfer_reason = "高风险售后"
+                    break
 
         # ----------------------------------------------------------------
         # 4. 单次 LLM 调用：情绪 + 路由 + 一级意图 + 是否澄清
@@ -478,6 +494,13 @@ async def stream_reply(
                 need_human = True
                 transfer_reason = "用户要求"
                 break
+
+        if not need_human:
+            for kw in CRITICAL_SERVICE_KEYWORDS:
+                if kw in user_msg:
+                    need_human = True
+                    transfer_reason = "高风险售后"
+                    break
 
         # 单次 LLM 分类
         emotion = "neutral"

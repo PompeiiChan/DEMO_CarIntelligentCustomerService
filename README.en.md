@@ -20,6 +20,7 @@ An AI customer-service workspace for automotive brands. It answers high-frequenc
 - [Highlights](#highlights)
 - [Product Capabilities](#product-capabilities)
 - [Architecture](#architecture)
+- [Prompt Flow](#prompt-flow)
 - [Quick Start](#quick-start)
 - [Routes](#routes)
 - [API Smoke Test](#api-smoke-test)
@@ -69,6 +70,55 @@ flowchart LR
   Ticket --> DB["SQLite"]
   Knowledge --> DB
 ```
+
+## Prompt Flow
+
+User input is not sent directly to the LLM for answer generation. It first goes through a customer-service routing pipeline: deterministic safety gates, a classification prompt that returns structured JSON, and then one of three paths: clarification, RAG-grounded answer generation, or human handoff.
+
+```mermaid
+flowchart TD
+  A["User Prompt<br/>e.g. budget inquiry / model comparison / breakdown / charging failure"] --> B["Load conversation context<br/>last 5 turns + session state"]
+
+  B --> C{"Deterministic gates"}
+  C -->|"Explicit human request<br/>transfer to agent / real person"| H1["Human handoff<br/>reason=user request"]
+  C -->|"Critical service case<br/>breakdown / cannot start / cannot charge / accident / rescue"| H2["Human handoff<br/>reason=critical service<br/>priority=high"]
+  C -->|"Normal inquiry"| D["Classification Prompt<br/>JSON only"]
+
+  D --> E["Parse structured result<br/>route: pre-sales / in-sales / after-sales<br/>intent_l1: primary intent<br/>confidence<br/>need_clarify<br/>emotion<br/>need_human"]
+
+  E --> F{"Routing decision"}
+  F -->|"Ambiguous request<br/>need_clarify=true"| Q["Clarifying question<br/>ask only one key question"]
+  F -->|"3 consecutive fallback or low-confidence turns<br/>confidence < 0.4"| H3["Human handoff<br/>reason=repeated unmatched turns"]
+  F -->|"Strong negative emotion<br/>emotion=negative and score>0.6"| H4["Human handoff<br/>reason=negative emotion<br/>priority=high"]
+  F -->|"Order or delivery query<br/>requires backend verification"| H5["Human handoff<br/>reason=manual order verification"]
+  F -->|"Complaint or escalation"| H6["Human handoff<br/>reason=complaint escalation"]
+  F -->|"Safe to answer automatically"| R["RAG retrieval<br/>vector search + BM25 + historical QA + structured vehicle data"]
+
+  R --> P["Final prompt assembly<br/>System Prompt<br/>+ recent conversation history<br/>+ intent label<br/>+ original user message<br/>+ retrieved context"]
+  P --> G["LLM customer-service reply<br/>concise, professional, friendly<br/>specific numbers for price/config<br/>guide to human/store when uncertain"]
+
+  Q --> S["Persist messages<br/>intent / confidence / emotion / round"]
+  G --> S
+  H1 --> T["Create ticket<br/>write ticket + session.transferring<br/>push to agent workspace"]
+  H2 --> T
+  H3 --> T
+  H4 --> T
+  H5 --> T
+  H6 --> T
+  T --> U["Agent takeover<br/>review context / reply manually / use AI suggestions / resolve / transfer back to AI"]
+```
+
+Core routing rules:
+
+| Branch | Trigger | System behavior |
+| --- | --- | --- |
+| Clarification | The user request is ambiguous and `need_clarify=true` | Ask one focused follow-up question instead of guessing |
+| Automatic answer | Intent is clear, risk is controlled, and the knowledge base can support the answer | Retrieve knowledge and inject context into the final prompt |
+| User-requested human handoff | The user explicitly asks for a human or real agent | Skip answer generation and create a ticket |
+| Critical service handoff | Breakdown, cannot start, cannot charge, accident, rescue, or similar safety-critical issues | Create a high-priority ticket immediately |
+| Negative emotion | Negative emotion score exceeds the threshold | Escalate to a human and raise priority |
+| Repeated unmatched turns | Multiple low-confidence or fallback turns | Escalate to avoid repeated AI clarification loops |
+| In-sales verification | Order, delivery, payment, or similar queries requiring backend confirmation | Escalate to an agent for verification |
 
 ## Quick Start
 
