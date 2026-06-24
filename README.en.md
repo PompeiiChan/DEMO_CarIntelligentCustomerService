@@ -73,16 +73,16 @@ flowchart LR
 
 ## Prompt Flow
 
-User input is not sent directly to the LLM for answer generation. It first goes through a customer-service routing pipeline: deterministic safety gates, a classification prompt that returns structured JSON, and then one of three paths: clarification, RAG-grounded answer generation, or human handoff.
+User input is not sent directly to the LLM for answer generation. It first goes through a customer-service routing pipeline with an intent-recognition layer that detects explicit human-agent requests, critical service intent, business route, primary intent, confidence, clarification need, and emotion before choosing one of three paths: clarification, RAG-grounded answer generation, or human handoff.
 
 ```mermaid
 flowchart TD
   A["User Prompt<br/>e.g. budget inquiry / model comparison / breakdown / charging failure"] --> B["Load conversation context<br/>last 5 turns + session state"]
 
-  B --> C{"Deterministic gates"}
-  C -->|"Explicit human request<br/>transfer to agent / real person"| H1["Human handoff<br/>reason=user request"]
-  C -->|"Critical service case<br/>breakdown / cannot start / cannot charge / accident / rescue"| H2["Human handoff<br/>reason=critical service<br/>priority=high"]
-  C -->|"Normal inquiry"| D["Classification Prompt<br/>JSON only"]
+  B --> C{"Intent Recognition"}
+  C -->|"Explicit human-agent intent<br/>transfer to agent / real person"| H1["Human handoff<br/>reason=user request"]
+  C -->|"Critical service intent<br/>breakdown / cannot start / cannot charge / accident / rescue"| H2["Human handoff<br/>reason=critical service<br/>priority=high"]
+  C -->|"Standard inquiry intent"| D["Classification Prompt<br/>JSON only"]
 
   D --> E["Parse structured result<br/>route: pre-sales / in-sales / after-sales<br/>intent_l1: primary intent<br/>confidence<br/>need_clarify<br/>emotion<br/>need_human"]
 
