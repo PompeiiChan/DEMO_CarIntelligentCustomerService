@@ -19,6 +19,7 @@ An AI customer-service workspace for automotive brands. It answers high-frequenc
 
 - [Highlights](#highlights)
 - [Product Capabilities](#product-capabilities)
+- [Screenshots](#screenshots)
 - [Prompt Flow](#prompt-flow)
 - [Quick Start](#quick-start)
 - [Routes](#routes)
@@ -46,6 +47,26 @@ An AI customer-service workspace for automotive brands. It answers high-frequenc
 | Ticket queue | Filter and sort tickets by status, category, emotion, and wait time |
 | Agent workspace | Claim tickets, review history, reply manually, generate AI suggestions, resolve or transfer back to AI |
 | Knowledge admin | Upload Markdown documents and inspect indexing status for RAG retrieval |
+
+## Screenshots
+
+### Customer Chat
+
+Mobile-first customer chat for vehicle owners and prospects, including natural-language questions, quick actions, AI replies, handoff notices, and human-agent takeover status.
+
+<img src="docs/images/client.png" alt="Customer chat interface" width="340">
+
+### Agent Workspace
+
+Human-agent workspace for pending tickets, conversation history, ticket details, AI reply suggestions, Bad Case tagging, and ticket resolution.
+
+![Agent workspace](docs/images/agent.png)
+
+### Admin Console
+
+Knowledge-base admin console for browsing document categories, uploading Markdown files, inspecting chunk and QA counts, and checking indexing status.
+
+![Knowledge-base admin console](docs/images/admin.png)
 
 ## Prompt Flow
 
